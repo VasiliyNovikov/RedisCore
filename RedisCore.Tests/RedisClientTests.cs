@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,9 +13,9 @@ namespace RedisCore.Tests
     {
         private static readonly EndPoint[] TestEndpoits =
         {
-            //new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6379),
-            new IPEndPoint(IPAddress.Parse("192.168.0.64"), 6379),
-            //new UnixDomainSocketEndPoint("/var/run/redis/redis.sock")
+            new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6379),
+            //new IPEndPoint(IPAddress.Parse("192.168.0.64"), 6379),
+            new UnixDomainSocketEndPoint("/var/run/redis/redis.sock")
         };
         
         private static IEnumerable<object[]> Test_Endpoints_Data() => TestEndpoits.Select(ep => new object[] {ep});
