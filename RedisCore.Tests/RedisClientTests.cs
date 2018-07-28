@@ -12,8 +12,8 @@ namespace RedisCore.Tests
     {
         private static readonly EndPoint[] TestEndpoits =
         {
-            //new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6379),
-            new IPEndPoint(IPAddress.Parse("192.168.0.64"), 6379),
+            new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6379),
+            //new IPEndPoint(IPAddress.Parse("192.168.0.64"), 6379),
             //new UnixDomainSocketEndPoint("/var/run/redis/redis.sock")
         };
         
@@ -220,11 +220,6 @@ namespace RedisCore.Tests
 
                 await client.Ping();
             }
-        }
-
-        [TestMethod]
-        public void Empty_Test()
-        {
         }
     }
 }
