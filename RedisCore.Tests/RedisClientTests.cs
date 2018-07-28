@@ -221,5 +221,10 @@ namespace RedisCore.Tests
                 await client.Ping();
             }
         }
+
+        [TestMethod]
+        public void Empty_Test()
+        {
+        }
     }
 }
