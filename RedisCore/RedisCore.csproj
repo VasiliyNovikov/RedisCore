@@ -11,6 +11,6 @@
     <RepositoryUrl>https://github.com/VasiliyNovikov/RedisCore</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>redis</PackageTags>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 </Project>
