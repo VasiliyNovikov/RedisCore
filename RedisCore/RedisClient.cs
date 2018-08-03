@@ -19,7 +19,7 @@ namespace RedisCore
         public RedisClient(RedisClientConfig config)
         {
             _config = config;
-            _connectionPool = new ConnectionPool(_config.EndPoint, _config.BufferSize);
+            _connectionPool = new ConnectionPool(_config);
         }
 
         public RedisClient(EndPoint endPoint)
@@ -56,7 +56,10 @@ namespace RedisCore
             CheckDisposed();
             try
             {
-                return await _connectionPool.Aquire();
+                var connection = await _connectionPool.Aquire();
+                if (_config.Password != null)
+                    await Execute(connection, new AuthCommand(_config.Password));
+                return connection;
             }
             catch (SocketException e)
             {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Net;
+using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,19 +10,15 @@ namespace RedisCore.Internal
 {
     internal class ConnectionPool : IDisposable
     {
+        private readonly RedisClientConfig _config;
         private bool _disposed;
-        private readonly EndPoint _endPoint;
-        private readonly int _bufferSize;
-        private readonly int _maxFreeConnections;
         private readonly ConcurrentBag<Connection> _connections = new ConcurrentBag<Connection>();
         private readonly AutoResetEvent _event = new AutoResetEvent(false);
         private readonly Task _maintainTask;
 
-        public ConnectionPool(EndPoint endPoint, int bufferSize, int maxFreeConnections = 2)
+        public ConnectionPool(RedisClientConfig config)
         {
-            _endPoint = endPoint;
-            _bufferSize = bufferSize;
-            _maxFreeConnections = maxFreeConnections;
+            _config = config;
             _maintainTask = Task.Factory.StartNew(MaintainPool, TaskCreationOptions.LongRunning);
         }
 
@@ -29,7 +26,7 @@ namespace RedisCore.Internal
         {
             while (!_disposed)
             {
-                while (_connections.Count > _maxFreeConnections && _connections.TryTake(out var connection))
+                while (_connections.Count > _config.MaxFreeConnections && _connections.TryTake(out var connection))
                     connection.Dispose();
                 _event.WaitOne();
             }
@@ -37,14 +34,32 @@ namespace RedisCore.Internal
 
         private async ValueTask<Connection> Create()
         {
-            var isUnixEndpoint = _endPoint is UnixDomainSocketEndPoint;
-            var socket = new Socket(_endPoint.AddressFamily, SocketType.Stream, isUnixEndpoint ? ProtocolType.Unspecified : ProtocolType.Tcp);
+            var endPoint = _config.EndPoint;
+            var isUnixEndpoint = endPoint is UnixDomainSocketEndPoint;
+            var socket = new Socket(endPoint.AddressFamily, SocketType.Stream, isUnixEndpoint ? ProtocolType.Unspecified : ProtocolType.Tcp);
             try
             {
                 if (!isUnixEndpoint)
                     socket.NoDelay = true;
-                await socket.ConnectAsync(_endPoint);
-                return new Connection(socket, _bufferSize);
+                await socket.ConnectAsync(endPoint);
+                
+                Stream stream = new NetworkStream(socket, false);
+                try
+                {
+                    if (_config.UseSsl)
+                    {
+                        var sslStream = new SslStream(stream);
+                        await sslStream.AuthenticateAsClientAsync(_config.HostName);
+                        stream = sslStream;
+                    }
+                }
+                catch
+                {
+                    stream.Dispose();
+                    throw;
+                }
+
+                return new Connection(socket, stream, _config.BufferSize);
             }
             catch
             {

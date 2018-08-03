@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,24 +10,41 @@ namespace RedisCore.Tests
     [TestClass]
     public class RedisClientTests
     {
-        private static readonly EndPoint[] TestEndpoits =
+        private static IEnumerable<RedisClientConfig>  LocalTestConfigs()
         {
-            new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6379),
-            //new IPEndPoint(IPAddress.Parse("192.168.0.64"), 6379),
-            new UnixDomainSocketEndPoint("/var/run/redis/redis.sock")
-        };
+            yield return new RedisClientConfig("127.0.0.1");
+            //yield return new RedisClientConfig("192.168.0.64");
+            yield return new RedisClientConfig(new UnixDomainSocketEndPoint("/var/run/redis/redis.sock"));
+
+        }
+
+        private static IEnumerable<RedisClientConfig> TestConfigs()
+        {
+            foreach (var config in LocalTestConfigs())
+                yield return config;
+
+            if (Environment.GetEnvironmentVariable("TF_BUILD") == null)
+                yield break;
+            
+            var host = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
+            var password = Environment.GetEnvironmentVariable("AZURE_REDIS_PASWORD");
+            Assert.IsNotNull(host);
+            Assert.IsNotNull(password);
+            yield return new RedisClientConfig(host, true) {Password = password};
+        }
         
-        private static IEnumerable<object[]> Test_Endpoints_Data() => TestEndpoits.Select(ep => new object[] {ep});
+        private static IEnumerable<object[]> Local_Test_Endpoints_Data() => LocalTestConfigs().Select(cfg => new object[] {cfg});
+        private static IEnumerable<object[]> Test_Endpoints_Data() => TestConfigs().Select(cfg => new object[] {cfg});
 
         [TestMethod]
         [DynamicData(nameof(Test_Endpoints_Data), DynamicDataSourceType.Method)]
-        public async Task RedisClient_Ping_Test(EndPoint endpoint)
+        public async Task RedisClient_Ping_Test(RedisClientConfig config)
         {
-            for (var i = 0; i < 5; ++i)
+            for (var i = 0; i < 4; ++i)
             {
-                using (var client = new RedisClient(endpoint))
+                using (var client = new RedisClient(config))
                 {
-                    for (var j = 0; j < 10; ++j)
+                    for (var j = 0; j < 8; ++j)
                     {
                         var start = DateTime.UtcNow;
                         var rtt = await client.Ping();
@@ -42,13 +58,13 @@ namespace RedisCore.Tests
         
         [TestMethod]
         [DynamicData(nameof(Test_Endpoints_Data), DynamicDataSourceType.Method)]
-        public async Task RedisClient_Get_Set_Delete_Test(EndPoint endpoint)
+        public async Task RedisClient_Get_Set_Delete_Test(RedisClientConfig config)
         {
-            for (var i = 0; i < 5; ++i)
+            for (var i = 0; i < 4; ++i)
             {
-                using (var client = new RedisClient(endpoint))
+                using (var client = new RedisClient(config))
                 {
-                    for (var j = 0; j < 10; ++j)
+                    for (var j = 0; j < 8; ++j)
                     {
                         var testKey = Guid.NewGuid().ToString();
                         var testValue = Guid.NewGuid().ToString();
@@ -67,10 +83,10 @@ namespace RedisCore.Tests
 
         [TestMethod]
         [DynamicData(nameof(Test_Endpoints_Data), DynamicDataSourceType.Method)]
-        public async Task RedisClient_Set_Expire_Test(EndPoint endpoint)
+        public async Task RedisClient_Set_Expire_Test(RedisClientConfig config)
         {
             var expireTime = TimeSpan.FromSeconds(0.5);
-            using (var client = new RedisClient(endpoint))
+            using (var client = new RedisClient(config))
             {
                 var testKey = Guid.NewGuid().ToString();
                 var testValue = Guid.NewGuid().ToString();
@@ -89,13 +105,13 @@ namespace RedisCore.Tests
 
         [TestMethod]
         [DynamicData(nameof(Test_Endpoints_Data), DynamicDataSourceType.Method)]
-        public async Task RedisClient_Integer_Get_Set_Delete_Test(EndPoint endpoint)
+        public async Task RedisClient_Integer_Get_Set_Delete_Test(RedisClientConfig config)
         {
-            for (var i = 0; i < 5; ++i)
+            for (var i = 0; i < 4; ++i)
             {
-                using (var client = new RedisClient(endpoint))
+                using (var client = new RedisClient(config))
                 {
-                    for (var j = 0; j < 10; ++j)
+                    for (var j = 0; j < 8; ++j)
                     {
                         var testKey = Guid.NewGuid().ToString();
                         const int testValue = 42;
@@ -114,13 +130,13 @@ namespace RedisCore.Tests
         
         [TestMethod]
         [DynamicData(nameof(Test_Endpoints_Data), DynamicDataSourceType.Method)]
-        public async Task RedisClient_Transaction_Get_Set_Test(EndPoint endpoint)
+        public async Task RedisClient_Transaction_Get_Set_Test(RedisClientConfig config)
         {
-            for (var i = 0; i < 5; ++i)
+            for (var i = 0; i < 4; ++i)
             {
-                using (var client = new RedisClient(endpoint))
+                using (var client = new RedisClient(config))
                 {
-                    for (var j = 0; j < 10; ++j)
+                    for (var j = 0; j < 8; ++j)
                     {
                         var testKey = Guid.NewGuid().ToString();
                         var testValue = Guid.NewGuid().ToString();
@@ -149,13 +165,13 @@ namespace RedisCore.Tests
         
         [TestMethod]
         [DynamicData(nameof(Test_Endpoints_Data), DynamicDataSourceType.Method)]
-        public async Task RedisClient_Transaction_Get_Set_Discard_Test(EndPoint endpoint)
+        public async Task RedisClient_Transaction_Get_Set_Discard_Test(RedisClientConfig config)
         {
-            for (var i = 0; i < 5; ++i)
+            for (var i = 0; i < 4; ++i)
             {
-                using (var client = new RedisClient(endpoint))
+                using (var client = new RedisClient(config))
                 {
-                    for (var j = 0; j < 10; ++j)
+                    for (var j = 0; j < 8; ++j)
                     {
                         var testKey = Guid.NewGuid().ToString();
                         var testValue = Guid.NewGuid().ToString();
@@ -192,17 +208,17 @@ namespace RedisCore.Tests
         }
 
         [TestMethod]
-        [DynamicData(nameof(Test_Endpoints_Data), DynamicDataSourceType.Method)]
-        public async Task RedisClient_Stopped_Ping_Test(EndPoint endpoint)
+        [DynamicData(nameof(Local_Test_Endpoints_Data), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Stopped_Ping_Test(RedisClientConfig config)
         {
-            using (var client = new RedisClient(endpoint))
+            using (var client = new RedisClient(config))
             {
                 await client.Ping();
 
                 await StopRedis();
                 try
                 {
-                    for (var i = 0; i < 5; ++i)
+                    for (var i = 0; i < 4; ++i)
                     {
                         try
                         {
