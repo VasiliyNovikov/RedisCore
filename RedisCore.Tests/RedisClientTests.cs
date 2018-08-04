@@ -28,8 +28,8 @@ namespace RedisCore.Tests
             
             var host = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
             var password = Environment.GetEnvironmentVariable("AZURE_REDIS_PASWORD");
-            Assert.IsNotNull(host);
-            Assert.IsNotNull(password);
+            Assert.IsNotNull(host, "Host is missing");
+            Assert.IsNotNull(password, "Password is missing");
             yield return new RedisClientConfig(host, true) {Password = password};
         }
         
