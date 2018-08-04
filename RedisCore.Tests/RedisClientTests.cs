@@ -27,7 +27,7 @@ namespace RedisCore.Tests
                 yield break;
 
             var host = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
-            var password = Environment.GetEnvironmentVariable("AZURE_REDIS_PASSWORD");
+            var password = Environment.GetEnvironmentVariable("AZURE_REDIS_PWD");
 
             Assert.IsNotNull(host, "Host is missing");
             Assert.IsNotNull(password, "Password is missing");
