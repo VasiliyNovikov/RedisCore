@@ -25,11 +25,13 @@ namespace RedisCore.Tests
 
             if (Environment.GetEnvironmentVariable("TF_BUILD") == null)
                 yield break;
-            
+
             var host = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
             var password = Environment.GetEnvironmentVariable("AZURE_REDIS_PASSWORD");
+
             Assert.IsNotNull(host, "Host is missing");
             Assert.IsNotNull(password, "Password is missing");
+
             yield return new RedisClientConfig(host, true) {Password = password};
         }
         
