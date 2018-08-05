@@ -5,6 +5,8 @@ namespace RedisCore.Internal.Commands
     internal static class CommandNames
     {
         public static readonly RedisString Ping = new RedisByteString("PING");
+        public static readonly RedisString Auth = new RedisByteString("AUTH");
+        
         public static readonly RedisString Get = new RedisByteString("GET");
         public static readonly RedisString Set = new RedisByteString("SET");
         public static readonly RedisString Del = new RedisByteString("DEL");

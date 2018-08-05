@@ -5,17 +5,16 @@ using System.Threading.Tasks;
 
 namespace RedisCore.Internal
 {
-    public class Connection : IDisposable
+    internal class Connection : IDisposable
     {
         private readonly Socket _socket;
         private readonly Stream _stream;
 
         public bool Connected => _socket.Connected;
 
-        public Connection(Socket socket, int bufferSize)
+        public Connection(Socket socket, Stream stream, int bufferSize)
         {
             _socket = socket;
-            Stream stream = new NetworkStream(socket, false);
             _stream = bufferSize > 0 ? new BufferedStream(stream, bufferSize) : stream;
         }
 
