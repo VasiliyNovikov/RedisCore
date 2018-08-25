@@ -11,8 +11,13 @@ namespace RedisCore.Tests
     [TestClass]
     public class RedisClientTests
     {
+        private static bool IsVstsBuild => Environment.GetEnvironmentVariable("TF_BUILD") != null;
+
         private static IEnumerable<RedisClientConfig>  LocalTestConfigs()
         {
+            if (IsVstsBuild && Environment.GetEnvironmentVariable("LOCAL_REDIS") != "true")
+                yield break;
+
             yield return new RedisClientConfig("127.0.0.1");
             //yield return new RedisClientConfig("192.168.0.64");
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))            
@@ -21,13 +26,10 @@ namespace RedisCore.Tests
 
         private static IEnumerable<RedisClientConfig> TestConfigs()
         {
-            var isVstsBuild = Environment.GetEnvironmentVariable("TF_BUILD") != null;
+            foreach (var config in LocalTestConfigs())
+                yield return config;
 
-            if (!isVstsBuild || Environment.GetEnvironmentVariable("LOCAL_REDIS") == "true")
-                foreach (var config in LocalTestConfigs())
-                    yield return config;
-
-            if (!isVstsBuild)
+            if (!IsVstsBuild)
                 yield break;
 
             var host = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
