@@ -13,3 +13,32 @@ phases:
   - ${{ if eq(parameters.local_redis, 'true') }}:
     - bash: . 'RedisCore.Tests/install_redis_debian.sh'
       displayName: Install Redis
+
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: restore
+      projects: **/*.csproj
+
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: build
+      projects: **/*.csproj
+      arguments: '--configuration $(configuration)'
+
+  - task: DotNetCoreCLI@2
+    displayName: Test
+    inputs:
+      command: test
+      projects: **/*Tests/*.csproj
+      arguments: '--configuration $(configuration)'
+    env:
+      AZURE_REDIS_PWD: $(azure_redis_password)
+
+  - task: DotNetCoreCLI@2
+    displayName: Pack
+    inputs:
+      command: pack
+      packagesToPack: '**/RedisCore.csproj'
+      nobuild: true
