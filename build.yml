@@ -8,3 +8,4 @@ phases:
   parameters:
     name: Windows
     queue: Hosted VS2017
+    local_redis: false
