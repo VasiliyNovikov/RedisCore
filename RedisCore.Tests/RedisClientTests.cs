@@ -25,8 +25,9 @@ namespace RedisCore.Tests
 
         private static IEnumerable<RedisClientConfig> TestConfigs()
         {
-            foreach (var config in LocalTestConfigs())
-                yield return config;
+            if (HasLocalRedis)
+                foreach (var config in LocalTestConfigs())
+                    yield return config;
 
             if (!IsVstsBuild)
                 yield break;
