@@ -1,0 +1,10 @@
+phases:
+- template: build_template.yml
+  parameters:
+    name: Linux
+    queue: Hosted Ubuntu 1604
+
+- template: build_template.yml
+  parameters:
+    name: Windows
+    queue: Hosted VS2017
