@@ -35,6 +35,7 @@ phases:
       arguments: '--configuration $(configuration)'
     env:
       AZURE_REDIS_PWD: $(azure_redis_password)
+      LOCAL_REDIS: ${{ parameters.local_redis }}
 
   - task: DotNetCoreCLI@2
     displayName: Pack
