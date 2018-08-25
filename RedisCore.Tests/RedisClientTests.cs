@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,16 +15,19 @@ namespace RedisCore.Tests
         {
             yield return new RedisClientConfig("127.0.0.1");
             //yield return new RedisClientConfig("192.168.0.64");
-            yield return new RedisClientConfig(new UnixDomainSocketEndPoint("/var/run/redis/redis.sock"));
-
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))            
+                yield return new RedisClientConfig(new UnixDomainSocketEndPoint("/var/run/redis/redis.sock"));
         }
 
         private static IEnumerable<RedisClientConfig> TestConfigs()
         {
-            foreach (var config in LocalTestConfigs())
-                yield return config;
+            var isVstsBuild = Environment.GetEnvironmentVariable("TF_BUILD") != null;
 
-            if (Environment.GetEnvironmentVariable("TF_BUILD") == null)
+            if (!isVstsBuild || Environment.GetEnvironmentVariable("LOCAL_REDIS") == "true")
+                foreach (var config in LocalTestConfigs())
+                    yield return config;
+
+            if (!isVstsBuild)
                 yield break;
 
             var host = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
