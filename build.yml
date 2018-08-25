@@ -1,8 +1,6 @@
 variables:
   configuration: release
   platform: any cpu
-  azure_redis_host_2:
-  azure_redis_password_2:
 
 phases:
 - template: build_template.yml
