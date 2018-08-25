@@ -8,5 +8,8 @@ phases:
   queue: ${{ parameters.queue }}
   steps:
   - script: env
+    displayName: Get Agent Info
+
   - ${{ if eq(parameters.local_redis, 'true') }}:
-    - script: echo "Local Redis"
+    - bash: . 'RedisCore.Tests/install_redis_debian.sh'
+      displayName: Install Redis
