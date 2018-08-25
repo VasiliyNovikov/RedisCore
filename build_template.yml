@@ -1,10 +1,12 @@
 parameters:
   name: ''
   queue: ''
+  local_redis: true
 
 phases:
 - phase: ${{ parameters.name }}
   queue: ${{ parameters.queue }}
   steps:
-  - script: echo "Hello world"
   - script: env
+  - ${{ if eq(parameters.local_redis, 'true') }}:
+    - script: echo "Local Redis"
