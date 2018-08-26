@@ -52,7 +52,7 @@ namespace RedisCore
                 : @object;
         }
 
-        private async ValueTask<Connection> AquireConnection()
+        private async ValueTask<Connection> AcquireConnection()
         {
             CheckDisposed();
             try
@@ -128,7 +128,7 @@ namespace RedisCore
         private protected override async ValueTask<T> Execute<T>(Command<T> command)
         {
             CheckDisposed();
-            var connection = await AquireConnection();
+            var connection = await AcquireConnection();
             try
             {
                 return await Execute(connection, command);
@@ -176,7 +176,7 @@ namespace RedisCore
             {
                 CheckDisposed();
                 _disposed = true;
-                var connection = await _client.AquireConnection();
+                var connection = await _client.AcquireConnection();
                 try
                 {
                     foreach (var key in _watchedKeys)
