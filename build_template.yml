@@ -2,6 +2,7 @@ parameters:
   name: ''
   queue: ''
   local_redis: true
+  publish_artifact: false
 
 phases:
 - phase: ${{ parameters.name }}
@@ -43,3 +44,10 @@ phases:
       command: pack
       packagesToPack: '**/RedisCore.csproj'
       nobuild: true
+
+  - ${{ if eq(parameters.publish_artifact, 'true') }}:
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact
+      inputs:
+        PathtoPublish: '$(build.artifactstagingdirectory)'
+        ArtifactName: drop

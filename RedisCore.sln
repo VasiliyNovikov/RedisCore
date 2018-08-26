@@ -3,11 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisCore", "RedisCore\RedisCore.csproj", "{55CD4093-C14C-4920-98A8-98391C7592CD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisCore", "RedisCore\RedisCore.csproj", "{55CD4093-C14C-4920-98A8-98391C7592CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisCore.Tests", "RedisCore.Tests\RedisCore.Tests.csproj", "{BD1976A0-C614-4394-A6DA-04C64D615DB9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisCore.Tests", "RedisCore.Tests\RedisCore.Tests.csproj", "{BD1976A0-C614-4394-A6DA-04C64D615DB9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisCore.Benchmarks", "RedisCore.Benchmarks\RedisCore.Benchmarks.csproj", "{A5127905-53B0-4610-9B56-A2296BCB09DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisCore.Benchmarks", "RedisCore.Benchmarks\RedisCore.Benchmarks.csproj", "{A5127905-53B0-4610-9B56-A2296BCB09DC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5B30644B-D68C-4D9C-8930-1A7BE44FAA50}"
+	ProjectSection(SolutionItems) = preProject
+		build.yml = build.yml
+		build_template.yml = build_template.yml
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

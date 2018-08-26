@@ -2,11 +2,15 @@ variables:
   configuration: release
   platform: any cpu
 
+trigger:
+- master
+
 phases:
 - template: build_template.yml
   parameters:
     name: Linux
     queue: Hosted Ubuntu 1604
+    publish_artifact: true
 
 - template: build_template.yml
   parameters:

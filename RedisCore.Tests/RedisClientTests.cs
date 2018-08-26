@@ -11,6 +11,10 @@ namespace RedisCore.Tests
     [TestClass]
     public class RedisClientTests
     {
+        private static bool IsVstsBuild => Environment.GetEnvironmentVariable("TF_BUILD") != null;
+
+        private static bool HasLocalRedis => !IsVstsBuild || Environment.GetEnvironmentVariable("LOCAL_REDIS") == "true";
+
         private static IEnumerable<RedisClientConfig>  LocalTestConfigs()
         {
             yield return new RedisClientConfig("127.0.0.1");
@@ -21,13 +25,11 @@ namespace RedisCore.Tests
 
         private static IEnumerable<RedisClientConfig> TestConfigs()
         {
-            var isVstsBuild = Environment.GetEnvironmentVariable("TF_BUILD") != null;
-
-            if (!isVstsBuild || Environment.GetEnvironmentVariable("LOCAL_REDIS") == "true")
+            if (HasLocalRedis)
                 foreach (var config in LocalTestConfigs())
                     yield return config;
 
-            if (!isVstsBuild)
+            if (!IsVstsBuild)
                 yield break;
 
             var host = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
@@ -217,6 +219,9 @@ namespace RedisCore.Tests
         [DynamicData(nameof(Local_Test_Endpoints_Data), DynamicDataSourceType.Method)]
         public async Task RedisClient_Stopped_Ping_Test(RedisClientConfig config)
         {
+            if (!HasLocalRedis) // Workaround. Need to figure out proper way to execute it conditionally
+                return;
+
             using (var client = new RedisClient(config))
             {
                 await client.Ping();
