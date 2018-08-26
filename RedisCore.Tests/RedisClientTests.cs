@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using RedisCore.Utils;
 
 namespace RedisCore.Tests
 {
@@ -54,9 +55,9 @@ namespace RedisCore.Tests
                 {
                     for (var j = 0; j < 8; ++j)
                     {
-                        var start = DateTime.UtcNow;
+                        var start = MonotonicTime.Now;
                         var rtt = await client.Ping();
-                        var testRtt = DateTime.UtcNow - start;
+                        var testRtt = MonotonicTime.Now - start;
                         Assert.IsTrue(rtt > TimeSpan.Zero);
                         Assert.IsTrue(testRtt > rtt);
                     }

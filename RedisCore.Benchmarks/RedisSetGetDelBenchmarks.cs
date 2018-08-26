@@ -23,7 +23,7 @@ namespace RedisCore.Benchmarks
             return Client_Set_Get_Del(TcpClient); 
         }
         
-        //[Benchmark]
+        [Benchmark]
         public Task Unix_Client_Set_Get_Del()
         {
             return Client_Set_Get_Del(UnixClient); 
