@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using RedisCore.Internal;
 using RedisCore.Internal.Commands;
 using RedisCore.Internal.Protocol;
+using RedisCore.Utils;
 
 namespace RedisCore
 {
@@ -76,7 +77,7 @@ namespace RedisCore
         private async ValueTask<RedisObject> Execute(Connection connection, RedisArray commandData)
         {
             var retryDelay = _config.LoadingRetryDelayMin;
-            var retryTimeoutTime = DateTime.UtcNow + _config.LoadingRetryTimeout;
+            var retryTimeoutTime = MonotonicTime.Now + _config.LoadingRetryTimeout;
             while (true)
             {
                 try
@@ -106,8 +107,8 @@ namespace RedisCore
                 {
                     // Right after start Redis server accepts connections immediately
                     // but still not operation by some time while loading database
-                    // So it always returns error in response untill fully loaded 
-                    if (e.Type != "LOADING" || DateTime.UtcNow > retryTimeoutTime)
+                    // So it always returns error in response until fully loaded 
+                    if (e.Type != "LOADING" || MonotonicTime.Now > retryTimeoutTime)
                         throw;
                     
                     await Task.Delay(retryDelay);
