@@ -2,14 +2,14 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>7.2</LangVersion>
-    <Version>0.1.2</Version>
+    <Version>0.1.3</Version>
     <Authors>Vasiliy Novikov</Authors>
     <Description>Light .NET Core Redis client</Description>
     <Copyright>Vasiliy Novikov</Copyright>
     <PackageProjectUrl>https://github.com/VasiliyNovikov/RedisCore</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/VasiliyNovikov/RedisCore/master/LICENSE</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/VasiliyNovikov/RedisCore</RepositoryUrl>
-    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryType>Git</RepositoryType>
     <PackageTags>redis</PackageTags>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
