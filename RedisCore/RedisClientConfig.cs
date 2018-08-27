@@ -20,7 +20,7 @@ namespace RedisCore
         
         public string Password { get; set; }
 
-        public int BufferSize { get; set; } = 1024;
+        public int BufferSize { get; set; } = 2048;
 
         public int MaxFreeConnections { get; set; } = 2;
 
@@ -62,7 +62,7 @@ namespace RedisCore
                 var host = HostName ?? ipEndPoint.Address.ToString();
                 address = ipEndPoint.Port == DefaultPort(UseSsl) ? host : $"{host}:{ipEndPoint.Port}";
             }
-            return $"{schema}://{address}";
+            return $"{schema}://{address} {{buffer={BufferSize}}})";
         }
     }
 }

@@ -35,5 +35,7 @@ namespace RedisCore.Internal.Commands
         public static readonly RedisString HGetAll = new RedisByteString("HGETALL");
         
         public static readonly RedisString Publish = new RedisByteString("PUBLISH");
+        public static readonly RedisString Subscribe = new RedisByteString("SUBSCRIBE");
+        public static readonly RedisString Unsubscribe = new RedisByteString("UNSUBSCRIBE");
     }
 }

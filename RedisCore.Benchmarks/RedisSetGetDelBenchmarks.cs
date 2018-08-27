@@ -14,9 +14,9 @@ namespace RedisCore.Benchmarks
         }
         
         [Benchmark]
-        public Task Udp_OfficialClient_Set_Get_Del()
+        public Task Unix_OfficialClient_Set_Get_Del()
         {
-            return Client_Set_Get_Del(UdpOfficialClient); 
+            return Client_Set_Get_Del(UnixOfficialClient); 
         }
         
         [Benchmark]
@@ -32,7 +32,7 @@ namespace RedisCore.Benchmarks
         }
         
         
-        public static async Task Client_Set_Get_Del(IDatabase client)
+        private static async Task Client_Set_Get_Del(IDatabase client)
         {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid().ToString();

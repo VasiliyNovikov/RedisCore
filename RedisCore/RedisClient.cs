@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using RedisCore.Internal;
 using RedisCore.Internal.Commands;
 using RedisCore.Internal.Protocol;
+using RedisCore.Pipelines;
 using RedisCore.Utils;
 
 namespace RedisCore
@@ -41,7 +43,7 @@ namespace RedisCore
         private void CheckDisposed()
         {
             if (_disposed)
-                throw new ObjectDisposedException("Redis transaction");
+                throw new ObjectDisposedException("Redis client");
         }
 
         private static TObject CheckError<TObject>(TObject @object)
@@ -52,12 +54,29 @@ namespace RedisCore
                 : @object;
         }
 
+        private static bool WrapException(Exception e, out RedisConnectionException redisException)
+        {
+            switch (e)
+            {
+                case SocketException _:
+                case IOException io when io.InnerException is SocketException:
+                    redisException = new RedisConnectionException(e.Message, e);
+                    return true;
+                case PipeCompletedException _:
+                    redisException = new RedisConnectionException(e.Message, e);
+                    return true;
+                default:
+                    redisException = null;
+                    return false;
+            }
+        }
+
         private async ValueTask<Connection> AcquireConnection()
         {
             CheckDisposed();
             try
             {
-                var connection = await _connectionPool.Aquire();
+                var connection = await _connectionPool.Acquire();
                 if (_config.Password != null)
                     await Execute(connection, new AuthCommand(_config.Password));
                 return connection;
@@ -85,20 +104,15 @@ namespace RedisCore
                     RedisObject result;
                     try
                     {
-                        await ProtocolHandler.Write(connection, commandData);
-                        await connection.Flush();
-                        result = await ProtocolHandler.Read(connection);
+                        ProtocolHandler.Write(connection.Output, commandData);
+                        await connection.Output.FlushAsync();
+                        result = await ProtocolHandler.Read(connection.Input);
                     }
                     catch (Exception e)
                     {
-                        switch (e)
-                        {
-                            case SocketException _:
-                            case IOException io when io.InnerException is SocketException:
-                                throw new RedisConnectionException(e.Message, e);
-                            default:
-                                throw;
-                        }
+                        if (WrapException(e, out var redisException))
+                            throw redisException;
+                        throw;
                     }
 
                     return CheckError(result);
@@ -145,7 +159,7 @@ namespace RedisCore
         {
             return new Transaction(this);
         }
-        
+
         #region Transaction
 
         private class Transaction : RedisCommandsBase, IRedisTransaction
@@ -282,6 +296,109 @@ namespace RedisCore
             }
         }
         
+        #endregion
+        
+        public async ValueTask<ISubscription> Subscribe(string channel)
+        {
+            CheckDisposed();
+            var connection = await AcquireConnection();
+            try
+            {
+                await Execute(connection, new SubscribeCommand(channel));
+                return new Subscription(this, connection);
+            }
+            catch
+            {
+                ReleaseConnection(connection);
+                throw;
+            }
+        }
+
+        #region Subscription
+
+        private class Subscription : ISubscription
+        {
+            private readonly RedisClient _client;
+            private readonly Connection _connection;
+            private bool _unsubscribed;
+            private bool _disposed;
+
+            public Subscription(RedisClient client, Connection connection)
+            {
+                _client = client;
+                _connection = connection;
+            }
+            
+            public void Dispose()
+            {
+                if (_disposed)
+                    return;
+                
+                _disposed = true;
+                if (_unsubscribed)
+                    _client.ReleaseConnection(_connection);
+                else
+                    _connection.Dispose();
+            }
+
+            private void CheckDisposed()
+            {
+                if (_disposed || _unsubscribed)
+                    throw new ObjectDisposedException("Redis subscription");
+            }
+
+            public async ValueTask Unsubscribe()
+            {
+                CheckDisposed();
+                while (true)
+                {
+                    RedisObject result;
+                    try
+                    {
+                        result = await _client.Execute(_connection, new RedisArray(CommandNames.Unsubscribe));
+                    }
+                    catch (Exception e)
+                    {
+                        if (WrapException(e, out var redisException))
+                            throw redisException;
+                        throw;
+                    }
+    
+                    var resultArray = ((RedisArray)CheckError(result)).Items;
+                    if (((RedisValueObject) resultArray[0]).To<string>() != "unsubscribe") 
+                        continue;
+                    
+                    _unsubscribed = true;
+                    return;
+                }
+            }
+
+            public async ValueTask<T> GetMessage<T>(CancellationToken cancellationToken = default)
+            {
+                CheckDisposed();
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    
+                    RedisObject result;
+                    try
+                    {
+                        result = await ProtocolHandler.Read(_connection.Input, cancellationToken);
+                    }
+                    catch (Exception e)
+                    {
+                        if (WrapException(e, out var redisException))
+                            throw redisException;
+                        throw;
+                    }
+    
+                    var resultArray = ((RedisArray)CheckError(result)).Items;
+                    if (((RedisValueObject) resultArray[0]).To<string>() == "message")
+                        return ((RedisValueObject) resultArray[2]).To<T>();
+                }
+            }
+        }
+
         #endregion
     }
 }

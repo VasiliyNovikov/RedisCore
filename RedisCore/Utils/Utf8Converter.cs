@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Buffers.Text;
+using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Utils
 {
@@ -9,6 +10,22 @@ namespace RedisCore.Utils
         public static bool TryParse<T>(ReadOnlySpan<byte> source, out T value, out int bytesConsumed, char standardFormat = '\0')
         {
             return ParseFunctionality<T>.Invoke(source, out value, out bytesConsumed, standardFormat);
+        }
+
+        public static bool TryParse<T>(ReadOnlySequence<byte> source, out T value, out int bytesConsumed, char standardFormat = '\0')
+        {
+            var maxSize = FormattedSize.Value<T>();
+            if (source.IsSingleSegment || source.First.Length >= maxSize)
+                return TryParse(source.First.Span, out value, out bytesConsumed, standardFormat);
+
+            if (source.Length < maxSize)
+                maxSize = (int)source.Length;
+            
+            using (var buffer = new RentedBuffer<byte>(maxSize))
+            {
+                source.CopyTo(buffer);
+                return TryParse(buffer.Span, out value, out bytesConsumed, standardFormat);
+            }
         }
 
         public static bool TryFormat<T>(T value, Span<byte> destination, out int bytesWritten, StandardFormat format = default)

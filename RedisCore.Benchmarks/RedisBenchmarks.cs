@@ -8,7 +8,7 @@ namespace RedisCore.Benchmarks
     {
         protected IDatabase TcpOfficialClient { get; }
 
-        protected IDatabase UdpOfficialClient { get; }
+        protected IDatabase UnixOfficialClient { get; }
 
         protected RedisClient TcpClient { get; }
 
@@ -21,7 +21,7 @@ namespace RedisCore.Benchmarks
             var unixEndPoint = new UnixDomainSocketEndPoint("/var/run/redis/redis.sock");
             
             TcpOfficialClient = ConnectionMultiplexer.Connect(new ConfigurationOptions {EndPoints = {tcpEndPoint}}).GetDatabase();
-            UdpOfficialClient = ConnectionMultiplexer.Connect(new ConfigurationOptions {EndPoints = {unixEndPoint}}).GetDatabase();
+            UnixOfficialClient = ConnectionMultiplexer.Connect(new ConfigurationOptions {EndPoints = {unixEndPoint}}).GetDatabase();
             TcpClient = new RedisClient(tcpEndPoint);
             UnixClient = new RedisClient(unixEndPoint);
         }

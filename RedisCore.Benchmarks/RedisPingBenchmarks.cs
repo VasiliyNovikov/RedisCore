@@ -12,9 +12,9 @@ namespace RedisCore.Benchmarks
         }
 
         [Benchmark]
-        public async Task Udp_OfficialClient_Ping()
+        public async Task Unix_OfficialClient_Ping()
         {
-            await UdpOfficialClient.PingAsync();
+            await UnixOfficialClient.PingAsync();
         }
 
         [Benchmark]

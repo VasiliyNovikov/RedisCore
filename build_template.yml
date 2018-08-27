@@ -19,7 +19,7 @@ phases:
     displayName: 'Use .NET Core SDK 2.1.402'
     inputs:
       version: 2.1.402
-  
+
   - task: DotNetCoreCLI@2
     displayName: Restore
     inputs:
@@ -44,6 +44,7 @@ phases:
       LOCAL_REDIS: ${{ parameters.local_redis }}
 
   - ${{ if eq(parameters.publish_artifact, 'true') }}:
+
     - task: DotNetCoreCLI@2
       displayName: Pack
       inputs:
