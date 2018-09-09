@@ -6,9 +6,15 @@ namespace RedisCore.Benchmarks
     public class RedisPingBenchmarks : RedisBenchmarks
     {
         [Benchmark]
-        public async Task OfficialClient_Ping()
+        public async Task Tcp_OfficialClient_Ping()
         {
-            await OfficialClient.PingAsync();
+            await TcpOfficialClient.PingAsync();
+        }
+
+        [Benchmark]
+        public async Task Udp_OfficialClient_Ping()
+        {
+            await UdpOfficialClient.PingAsync();
         }
 
         [Benchmark]

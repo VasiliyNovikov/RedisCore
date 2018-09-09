@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using StackExchange.Redis;
 
 namespace RedisCore.Benchmarks
 {
     public class RedisSetGetDelBenchmarks : RedisBenchmarks
     {
         [Benchmark]
-        public async Task OfficialClient_Set_Get_Del()
+        public Task Tcp_OfficialClient_Set_Get_Del()
         {
-            var key = Guid.NewGuid().ToString();
-            var value = Guid.NewGuid().ToString();
-
-            await OfficialClient.StringSetAsync(key, value);
-            await OfficialClient.StringGetAsync(key);
-            await OfficialClient.KeyDeleteAsync(key);
+            return Client_Set_Get_Del(TcpOfficialClient); 
+        }
+        
+        [Benchmark]
+        public Task Udp_OfficialClient_Set_Get_Del()
+        {
+            return Client_Set_Get_Del(UdpOfficialClient); 
         }
         
         [Benchmark]
@@ -27,6 +29,17 @@ namespace RedisCore.Benchmarks
         public Task Unix_Client_Set_Get_Del()
         {
             return Client_Set_Get_Del(UnixClient); 
+        }
+        
+        
+        public static async Task Client_Set_Get_Del(IDatabase client)
+        {
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid().ToString();
+
+            await client.StringSetAsync(key, value);
+            await client.StringGetAsync(key);
+            await client.KeyDeleteAsync(key);
         }
         
         private static async Task Client_Set_Get_Del(RedisClient client)
