@@ -5,7 +5,7 @@
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="StackExchange.Redis" Version="2.0.495" />
+    <PackageReference Include="StackExchange.Redis" Version="2.0.505" />
     <PackageReference Include="BenchmarkDotNet" Version="0.11.1" />
   </ItemGroup>
   <ItemGroup>
