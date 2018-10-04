@@ -55,6 +55,7 @@ namespace RedisCore.Pipelines
             try
             {
                 await PopulateReader(readerBackend);
+                readerBackend.Complete();
             }
             catch (Exception e)
             {
@@ -67,6 +68,7 @@ namespace RedisCore.Pipelines
             try
             {
                 await PopulateWriter(writerBackend);
+                writerBackend.Complete();
             }
             catch (Exception e)
             {

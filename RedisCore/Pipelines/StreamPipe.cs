@@ -29,8 +29,6 @@ namespace RedisCore.Pipelines
                 if (result.IsCompleted)
                     break;
             }
-
-            readerBackend.Complete();
         }
 
         protected override async Task PopulateWriter(PipeReader writerBackend)
@@ -51,8 +49,6 @@ namespace RedisCore.Pipelines
                 if (result.IsCompleted)
                     break;
             }
-            
-            writerBackend.Complete();
         }
     }
 }
