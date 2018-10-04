@@ -15,6 +15,11 @@ phases:
     - bash: . 'RedisCore.Tests/install_redis_debian.sh'
       displayName: Install Redis
 
+  - task: DotNetCoreInstaller@0
+    displayName: 'Use .NET Core SDK 2.1.402'
+    inputs:
+      version: 2.1.402
+  
   - task: DotNetCoreCLI@2
     displayName: Restore
     inputs:
@@ -38,14 +43,14 @@ phases:
       AZURE_REDIS_PWD: $(azure_redis_password)
       LOCAL_REDIS: ${{ parameters.local_redis }}
 
-  - task: DotNetCoreCLI@2
-    displayName: Pack
-    inputs:
-      command: pack
-      packagesToPack: '**/RedisCore.csproj'
-      nobuild: true
-
   - ${{ if eq(parameters.publish_artifact, 'true') }}:
+    - task: DotNetCoreCLI@2
+      displayName: Pack
+      inputs:
+        command: pack
+        packagesToPack: '**/RedisCore.csproj'
+        nobuild: true
+
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact
       inputs:
