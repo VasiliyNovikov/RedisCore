@@ -17,7 +17,6 @@ namespace RedisCore.Benchmarks
         public RedisBenchmarks()
         {
             var tcpEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6379);
-            //var tcpEndPoint = new IPEndPoint(IPAddress.Parse("192.168.0.64"), 6379);
             var unixEndPoint = new UnixDomainSocketEndPoint("/var/run/redis/redis.sock");
             
             TcpOfficialClient = ConnectionMultiplexer.Connect(new ConfigurationOptions {EndPoints = {tcpEndPoint}}).GetDatabase();

@@ -13,14 +13,15 @@ namespace RedisCore.Tests
 
         protected static bool HasLocalRedis => !IsVstsBuild || Environment.GetEnvironmentVariable("LOCAL_REDIS") == "true";
 
+        private static string LocalRedisAddress => Environment.GetEnvironmentVariable("LOCAL_REDIS_ADDRESS") ?? "127.0.0.1";
+
         private static readonly int[] BufferSizes = {16, 256, 65536};
 
         private static IEnumerable<RedisClientConfig>  LocalTestConfigs()
         {
             foreach (var bufferSize in BufferSizes)
             {
-                yield return new RedisClientConfig("127.0.0.1") {BufferSize = bufferSize};
-                //yield return new RedisClientConfig("192.168.0.64");
+                yield return new RedisClientConfig(LocalRedisAddress) {BufferSize = bufferSize};
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     yield return new RedisClientConfig(new UnixDomainSocketEndPoint("/var/run/redis/redis.sock")) {BufferSize = bufferSize};
             }
