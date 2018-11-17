@@ -1,17 +1,18 @@
 parameters:
   name: ''
-  queue: ''
-  local_redis: true
-  publish_artifact: false
+  vmImage: ''
+  localRedis: false
+  publishArtifact: false
 
-phases:
-- phase: ${{ parameters.name }}
-  queue: ${{ parameters.queue }}
+jobs:
+- job: ${{ parameters.name }}
+  pool:
+    vmImage: ${{ parameters.vmImage }}
   steps:
   - script: env
     displayName: Get Agent Info
 
-  - ${{ if eq(parameters.local_redis, 'true') }}:
+  - ${{ if eq(parameters.localRedis, 'true') }}:
     - bash: . 'RedisCore.Tests/install_redis_debian.sh'
       displayName: Install Redis
 
@@ -41,9 +42,9 @@ phases:
       arguments: '--configuration $(configuration)'
     env:
       AZURE_REDIS_PWD: $(azure_redis_password)
-      LOCAL_REDIS: ${{ parameters.local_redis }}
+      LOCAL_REDIS: ${{ parameters.localRedis }}
 
-  - ${{ if eq(parameters.publish_artifact, 'true') }}:
+  - ${{ if eq(parameters.publishArtifact, 'true') }}:
 
     - task: DotNetCoreCLI@2
       displayName: Pack
