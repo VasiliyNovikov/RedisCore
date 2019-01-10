@@ -6,10 +6,10 @@ namespace RedisCore.Pipelines
 {
     public abstract class DuplexPipe : IDuplexPipe
     {
-        private readonly ExtendedPipeReader _input;
-        private readonly ExtendedPipeWriter _inputBackend;
-        private readonly ExtendedPipeWriter _output;
-        private readonly ExtendedPipeReader _outputBackend;
+        private readonly PipeReader _input;
+        private readonly PipeWriter _inputBackend;
+        private readonly PipeWriter _output;
+        private readonly PipeReader _outputBackend;
         private Task _populateTask;
 
         protected int BufferSegmentSize { get; }
@@ -32,8 +32,6 @@ namespace RedisCore.Pipelines
             }
         }
 
-        public bool IsCompleted => _input.IsCompleted || _output.IsCompleted;
-
         protected DuplexPipe(int bufferSegmentSize = 512, int pauseWriterThreshold = 8192, int resumeWriterThreshold = 4096)
         {
             BufferSegmentSize = bufferSegmentSize;
@@ -43,44 +41,46 @@ namespace RedisCore.Pipelines
                                           useSynchronizationContext: false);
             var inputPipe = new Pipe(options);
             var outputPipe = new Pipe(options);
-            (_input, _inputBackend) = ExtendedPipe.Create(inputPipe);
-            (_outputBackend, _output) = ExtendedPipe.Create(outputPipe);
+            _input = inputPipe.Reader;
+            _inputBackend = inputPipe.Writer;
+            _output = outputPipe.Writer;
+            _outputBackend = outputPipe.Reader;
         }
 
         protected abstract Task PopulateReader(PipeWriter readerBackend);
         protected abstract Task PopulateWriter(PipeReader writerBackend);
 
-        private async Task PopulateReaderHandleErrors(PipeWriter readerBackend)
+        private async Task PopulateReaderHandleErrors()
         {
             try
             {
-                await PopulateReader(readerBackend);
-                readerBackend.Complete();
+                await PopulateReader(_inputBackend);
+                _inputBackend.Complete();
             }
             catch (Exception e)
             {
-                readerBackend.Complete(e);
+                _inputBackend.Complete(e);
             }
         }
         
-        private async Task PopulateWriterHandleErrors(PipeReader writerBackend)
+        private async Task PopulateWriterHandleErrors()
         {
             try
             {
-                await PopulateWriter(writerBackend);
-                writerBackend.Complete();
+                await PopulateWriter(_outputBackend);
+                _outputBackend.Complete();
             }
             catch (Exception e)
             {
-                writerBackend.Complete(e);
+                _outputBackend.Complete(e);
             }
         }
 
         private void EnsureStartPopulating()
         {
             if (_populateTask == null)
-                _populateTask = Task.WhenAll(PopulateReaderHandleErrors(_inputBackend),
-                                             PopulateWriterHandleErrors(_outputBackend));
+                _populateTask = Task.WhenAll(PopulateReaderHandleErrors(),
+                                             PopulateWriterHandleErrors());
         }
     }
 }

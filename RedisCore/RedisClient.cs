@@ -54,7 +54,7 @@ namespace RedisCore
                 : @object;
         }
 
-        private static bool WrapException(Exception e, out RedisConnectionException redisException)
+        private static bool WrapException(Connection connection, Exception e, out RedisConnectionException redisException)
         {
             switch (e)
             {
@@ -62,7 +62,8 @@ namespace RedisCore
                 case IOException io when io.InnerException is SocketException:
                     redisException = new RedisConnectionException(e.Message, e);
                     return true;
-                case PipeCompletedException _:
+                case EndOfStreamException _:
+                    connection.MarkAsDisconnected();
                     redisException = new RedisConnectionException(e.Message, e);
                     return true;
                 default:
@@ -110,7 +111,7 @@ namespace RedisCore
                     }
                     catch (Exception e)
                     {
-                        if (WrapException(e, out var redisException))
+                        if (WrapException(connection, e, out var redisException))
                             throw redisException;
                         throw;
                     }
@@ -359,7 +360,7 @@ namespace RedisCore
                     }
                     catch (Exception e)
                     {
-                        if (WrapException(e, out var redisException))
+                        if (WrapException(_connection, e, out var redisException))
                             throw redisException;
                         throw;
                     }
@@ -387,7 +388,7 @@ namespace RedisCore
                     }
                     catch (Exception e)
                     {
-                        if (WrapException(e, out var redisException))
+                        if (WrapException(_connection, e, out var redisException))
                             throw redisException;
                         throw;
                     }

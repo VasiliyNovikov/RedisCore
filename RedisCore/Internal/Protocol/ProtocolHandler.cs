@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipelines;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,8 +91,8 @@ namespace RedisCore.Internal.Protocol
             if (!readResult.IsCompleted)
                 return;
 
-            reader.Complete();
-            throw new SocketException((int) SocketError.Interrupted);
+            reader.AdvanceTo(readResult.Buffer.End);
+            throw new EndOfStreamException();
         }
 
         private static SequencePosition? FindNewLine(ReadOnlySequence<byte> buffer)
