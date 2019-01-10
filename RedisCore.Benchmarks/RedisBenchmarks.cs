@@ -12,9 +12,13 @@ namespace RedisCore.Benchmarks
 
         protected RedisClient TcpClient { get; }
 
+        protected RedisClient TcpClientStreamed { get; }
+
         protected RedisClient UnixClient { get; }
 
-        public RedisBenchmarks()
+        protected RedisClient UnixClientStreamed { get; }
+
+        protected RedisBenchmarks()
         {
             var tcpEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6379);
             var unixEndPoint = new UnixDomainSocketEndPoint("/var/run/redis/redis.sock");
@@ -23,6 +27,8 @@ namespace RedisCore.Benchmarks
             UnixOfficialClient = ConnectionMultiplexer.Connect(new ConfigurationOptions {EndPoints = {unixEndPoint}}).GetDatabase();
             TcpClient = new RedisClient(tcpEndPoint);
             UnixClient = new RedisClient(unixEndPoint);
+            TcpClientStreamed = new RedisClient(new RedisClientConfig(tcpEndPoint){ForceUseNetworkStream = true});
+            UnixClientStreamed = new RedisClient(new RedisClientConfig(unixEndPoint){ForceUseNetworkStream = true});
         }
     }
 }

@@ -44,19 +44,22 @@ namespace RedisCore.Internal
                 await socket.ConnectAsync(endPoint);
 
                 Stream stream = null;
-                if (_config.UseSsl)
+                if (_config.UseSsl || _config.ForceUseNetworkStream)
                 {
                     stream = new NetworkStream(socket, false);
-                    try
+                    if (_config.UseSsl)
                     {
-                        var sslStream = new SslStream(new NetworkStream(socket, false));
-                        await sslStream.AuthenticateAsClientAsync(_config.HostName);
-                        stream = sslStream;
-                    }
-                    catch
-                    {
-                        stream.Dispose();
-                        throw;
+                        try
+                        {
+                            var sslStream = new SslStream(new NetworkStream(socket, false));
+                            await sslStream.AuthenticateAsClientAsync(_config.HostName);
+                            stream = sslStream;
+                        }
+                        catch
+                        {
+                            stream.Dispose();
+                            throw;
+                        }
                     }
                 }
 

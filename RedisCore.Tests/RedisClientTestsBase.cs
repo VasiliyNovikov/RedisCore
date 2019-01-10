@@ -21,9 +21,20 @@ namespace RedisCore.Tests
         {
             foreach (var bufferSize in BufferSizes)
             {
-                yield return new RedisClientConfig(LocalRedisAddress) {BufferSize = bufferSize};
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                    yield return new RedisClientConfig(new UnixDomainSocketEndPoint("/var/run/redis/redis.sock")) {BufferSize = bufferSize};
+                foreach (var forceUseNetworkStream in new[] {false, true})
+                {
+                    yield return new RedisClientConfig(LocalRedisAddress)
+                    {
+                        BufferSize = bufferSize,
+                        ForceUseNetworkStream = forceUseNetworkStream
+                    };
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                        yield return new RedisClientConfig(new UnixDomainSocketEndPoint("/var/run/redis/redis.sock"))
+                        {
+                            BufferSize = bufferSize,
+                            ForceUseNetworkStream = forceUseNetworkStream
+                        };
+                }
             }
         }
 

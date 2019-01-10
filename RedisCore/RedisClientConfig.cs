@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace RedisCore
 {
@@ -8,6 +9,8 @@ namespace RedisCore
     {
         private const int DefaultTcpPort = 6379;
         private const int DefaultSslPort = 6380;
+        private const int DefaultBufferSize = 2048;
+        private const int DefaultMaxFreeConnections = 2;
 
         private static int DefaultPort(bool useSsl) => useSsl ? DefaultSslPort : DefaultTcpPort;
         
@@ -15,14 +18,16 @@ namespace RedisCore
         public EndPoint EndPoint { get; }
         
         public bool UseSsl { get; }
-        
+
         public string HostName{ get; }
         
         public string Password { get; set; }
 
-        public int BufferSize { get; set; } = 2048;
+        public int BufferSize { get; set; } = DefaultBufferSize;
 
-        public int MaxFreeConnections { get; set; } = 2;
+        public int MaxFreeConnections { get; set; } = DefaultMaxFreeConnections;
+
+        public bool ForceUseNetworkStream { get; set; }
 
         public TimeSpan LoadingRetryDelayMin { get; set; } = TimeSpan.FromMilliseconds(20);
         
@@ -34,7 +39,7 @@ namespace RedisCore
         {
             EndPoint = endPoint ?? throw new ArgumentNullException(nameof(endPoint));
         }
-        
+
         public RedisClientConfig(string address, bool useSsl = false)
         {
             UseSsl = useSsl;
@@ -62,7 +67,24 @@ namespace RedisCore
                 var host = HostName ?? ipEndPoint.Address.ToString();
                 address = ipEndPoint.Port == DefaultPort(UseSsl) ? host : $"{host}:{ipEndPoint.Port}";
             }
-            return $"{schema}://{address} {{buffer={BufferSize}}})";
+
+            var featureBuilder = new StringBuilder();
+            if (BufferSize != DefaultBufferSize)
+                featureBuilder.Append($"bufferSize={BufferSize}");
+            if (MaxFreeConnections != DefaultMaxFreeConnections)
+            {
+                if (featureBuilder.Length > 0)
+                    featureBuilder.Append(", ");
+                featureBuilder.Append($"maxFreeConnections={MaxFreeConnections}");
+            }
+            if (ForceUseNetworkStream)
+            {
+                if (featureBuilder.Length > 0)
+                    featureBuilder.Append(", ");
+                featureBuilder.Append("forceUseNetworkStream");
+            }
+
+            return $"{schema}://{address} {{{featureBuilder}}})";
         }
     }
 }

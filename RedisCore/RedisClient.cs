@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using RedisCore.Internal;
 using RedisCore.Internal.Commands;
 using RedisCore.Internal.Protocol;
-using RedisCore.Pipelines;
 using RedisCore.Utils;
 
 namespace RedisCore
