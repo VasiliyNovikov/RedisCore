@@ -15,7 +15,7 @@ namespace RedisCore.Tests
 
         private static string LocalRedisAddress => Environment.GetEnvironmentVariable("LOCAL_REDIS_ADDRESS") ?? "127.0.0.1";
 
-        private static readonly int[] BufferSizes = {16, 256, 65536};
+        private static readonly int[] BufferSizes = {64, 256, 65536};
 
         private static IEnumerable<RedisClientConfig>  LocalTestConfigs()
         {
