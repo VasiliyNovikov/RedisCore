@@ -5,21 +5,20 @@ variables:
 trigger:
 - master
 
-phases:
+jobs:
 - template: build_template.yml
   parameters:
     name: Linux
-    queue: Hosted Ubuntu 1604
-    publish_artifact: true
+    vmImage: ubuntu-16.04
+    localRedis: true
+    publishArtifact: true
 
 - template: build_template.yml
   parameters:
     name: Windows
-    queue: Hosted VS2017
-    local_redis: false
+    vmImage: vs2017-win2016
 
 - template: build_template.yml
   parameters:
     name: Mac
-    queue: Hosted macOS Preview
-    local_redis: false
+    vmImage: macOS-10.13

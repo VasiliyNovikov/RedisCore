@@ -12,27 +12,38 @@ namespace RedisCore.Benchmarks
         {
             return Client_Set_Get_Del(TcpOfficialClient); 
         }
-        
+
         [Benchmark]
-        public Task Udp_OfficialClient_Set_Get_Del()
+        public Task Unix_OfficialClient_Set_Get_Del()
         {
-            return Client_Set_Get_Del(UdpOfficialClient); 
+            return Client_Set_Get_Del(UnixOfficialClient); 
         }
-        
+
         [Benchmark]
         public Task Tcp_Client_Set_Get_Del()
         {
             return Client_Set_Get_Del(TcpClient); 
         }
-        
+
+        [Benchmark]
+        public Task Tcp_Client_Streamed_Set_Get_Del()
+        {
+            return Client_Set_Get_Del(TcpClientStreamed); 
+        }
+
         [Benchmark]
         public Task Unix_Client_Set_Get_Del()
         {
             return Client_Set_Get_Del(UnixClient); 
         }
-        
-        
-        public static async Task Client_Set_Get_Del(IDatabase client)
+
+        [Benchmark]
+        public Task Unix_Client_Streamed_Set_Get_Del()
+        {
+            return Client_Set_Get_Del(UnixClientStreamed); 
+        }
+
+        private static async Task Client_Set_Get_Del(IDatabase client)
         {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid().ToString();
@@ -41,7 +52,7 @@ namespace RedisCore.Benchmarks
             await client.StringGetAsync(key);
             await client.KeyDeleteAsync(key);
         }
-        
+
         private static async Task Client_Set_Get_Del(RedisClient client)
         {
             var key = Guid.NewGuid().ToString();

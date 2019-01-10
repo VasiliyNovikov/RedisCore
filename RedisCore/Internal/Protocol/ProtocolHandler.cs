@@ -1,7 +1,10 @@
 ﻿using System;
-using System.Buffers.Text;
+using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Pipelines;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using RedisCore.Utils;
 
@@ -17,122 +20,176 @@ namespace RedisCore.Internal.Protocol
         private static readonly ReadOnlyMemory<byte> StrLenPrefix = Encoding.GetBytes("$");
         private static readonly ReadOnlyMemory<byte> ArrayLenPrefix = Encoding.GetBytes("*");
 
-        private static async ValueTask WriteScalar<T>(Connection connection, T value) where T : struct
+        private static void Write(PipeWriter writer, ReadOnlyMemory<byte> value)
         {
-            using (var buffer = new RentedBuffer<byte>(FormattedSize.Value<T>()))
-            {
-                Utf8Converter.TryFormat(value, buffer, out var bytesWritten);
-                await connection.Write(buffer.Memory.Slice(0, bytesWritten));
-            }
+            var buffer = writer.GetMemory(value.Length);
+            value.CopyTo(buffer);
+            writer.Advance(value.Length);
+        }
+
+        private static void WriteScalar<T>(PipeWriter writer, T value) where T : struct
+        {
+            var buffer = writer.GetMemory(FormattedSize.Value<T>());
+            Utf8Converter.TryFormat(value, buffer.Span, out var bytesWritten);
+            writer.Advance(bytesWritten);
         }
         
-        private static async ValueTask WriteString(Connection connection, RedisString value)
+        private static void WriteString(PipeWriter writer, RedisString value)
         {
+            var buffer = writer.GetMemory(value.ByteLength);
             if (value is RedisByteString byteValue)
+                byteValue.Value.CopyTo(buffer);
+            else
             {
-                await connection.Write(byteValue.Value);
-                return;
+                var charValue = (RedisCharString) value;
+                Encoding.GetBytes(charValue.Value, buffer.Span);
             }
 
-            var charValue = (RedisCharString) value;
-            using (var buffer = new RentedBuffer<byte>(charValue.ByteLength))
-            {
-                Encoding.GetBytes(charValue.Value, buffer);
-                await connection.Write(buffer.Memory);
-            }
+            writer.Advance(value.ByteLength);
         }
 
-        public static async ValueTask Write(Connection connection, RedisObject @object)
+        public static void Write(PipeWriter writer, RedisObject @object)
         {
             switch (@object)
             {
                 case RedisNull _:
-                    await connection.Write(NullData);
-                    await connection.Write(NewLine);
+                    Write(writer, NullData);
+                    Write(writer, NewLine);
                     return;
                 
                 case RedisInteger intObject:
-                    await connection.Write(IntPrefix);
-                    await WriteScalar(connection, intObject.Value);
-                    await connection.Write(NewLine);
+                    Write(writer, IntPrefix);
+                    WriteScalar(writer, intObject.Value);
+                    Write(writer, NewLine);
                     return;
                 
                 case RedisString strObject:
-                    await connection.Write(StrLenPrefix);
-                    await WriteScalar(connection, strObject.ByteLength);
-                    await connection.Write(NewLine);
+                    Write(writer, StrLenPrefix);
+                    WriteScalar(writer, strObject.ByteLength);
+                    Write(writer, NewLine);
 
-                    await WriteString(connection, strObject);
-                    await connection.Write(NewLine);
+                    WriteString(writer, strObject);
+                    Write(writer, NewLine);
                     return;
 
                 case RedisArray arrayObject:
-                    await connection.Write(ArrayLenPrefix);
-                    await WriteScalar(connection, arrayObject.Items.Count);
-                    await connection.Write(NewLine);
+                    Write(writer, ArrayLenPrefix);
+                    WriteScalar(writer, arrayObject.Items.Count);
+                    Write(writer, NewLine);
                     
                     foreach (var item in arrayObject.Items)
-                        await Write(connection, item);
+                        Write(writer, item);
                     return;
 
                 default:
-                    throw new ArgumentException($"Unsuppoted object {@object.GetType()}", nameof(@object));
+                    throw new ArgumentException($"Unsupported object {@object.GetType()}", nameof(@object));
             }
         }
 
-        public static async ValueTask<RedisObject> Read(Connection connection)
+        private static void CheckCompletedUnexpectedly(PipeReader reader, ReadResult readResult)
         {
-            var buffer = new RentedBuffer<byte>(64);
-            try
+            if (!readResult.IsCompleted)
+                return;
+
+            reader.AdvanceTo(readResult.Buffer.End);
+            throw new EndOfStreamException();
+        }
+
+        private static SequencePosition? FindNewLine(ReadOnlySequence<byte> buffer)
+        {
+            var crPosition = buffer.PositionOf((byte)'\r');
+            if (crPosition == null)
+                return null;
+            
+            var lfPosition = buffer.GetPosition(1, crPosition.Value);
+            if (lfPosition.Equals(buffer.End))
+                return null;
+            
+            if (buffer.Slice(lfPosition).First.Span[0] != (byte) '\n')
+                return null;
+            
+            return crPosition;
+        }
+
+        private static string GetString(ReadOnlySequence<byte> buffer)
+        {
+            if (buffer.IsSingleSegment)
+                return Encoding.GetString(buffer.First.Span);
+            
+            using (var localBuffer = new RentedBuffer<byte>((int)buffer.Length))
             {
-                var totalBytesRead = 0;
-                var isCarriageReturn = false;
-                while (true)
+                buffer.CopyTo(localBuffer);
+                return Encoding.GetString(localBuffer.Span);
+            }
+        }
+
+        public static async ValueTask<RedisObject> Read(PipeReader reader, CancellationToken cancellationToken = default)
+        {
+            while (true)
+            {
+                var readResult = await reader.ReadAsync(cancellationToken);
+                var buffer = readResult.Buffer;
+                var newLinePosition = FindNewLine(buffer);
+                if (newLinePosition == null)
                 {
-                    if (totalBytesRead == buffer.Length)
-                    {
-                        buffer.Dispose();
-                        buffer = new RentedBuffer<byte>(buffer.Length * 2);
-                    }
-
-                    if (await connection.Read(buffer.Memory.Slice(totalBytesRead, 1)) == 0)
-                        throw new ProtocolException("Expected CRLF");
-
-                    if (buffer.Span[totalBytesRead] == '\n' && isCarriageReturn)
-                        break;
-
-                    isCarriageReturn = buffer.Span[totalBytesRead] == '\r';
-                    totalBytesRead += 1;
+                    CheckCompletedUnexpectedly(reader, readResult);
+                    reader.AdvanceTo(buffer.Start, buffer.End);
+                    continue;
                 }
 
-                var lineType = (char)buffer.Span[0];
-                var line = buffer.Memory.Slice(1, totalBytesRead - 2);
+                var line = buffer.Slice(1, newLinePosition.Value);
+                var lineType = (char) buffer.First.Span[0];
                 
+                var nextPosition = buffer.GetPosition(2, newLinePosition.Value);
+
                 switch (lineType)
                 {
                     case '+':
-                        return new RedisCharString(Encoding.GetString(line.Span));
+                    {
+                        var str = GetString(line);
+                        reader.AdvanceTo(nextPosition);
+                        return new RedisCharString(str);
+                    }
                     case ':':
                     {
-                        if (!Utf8Parser.TryParse(line.Span, out long intValue, out var bytesConsumed) || bytesConsumed != line.Length)
+                        if (!Utf8Converter.TryParse(line, out long intValue, out var bytesConsumed) ||
+                            bytesConsumed != line.Length)
                             throw new ProtocolException("Expected integer value");
+                        reader.AdvanceTo(nextPosition);
                         return new RedisInteger(intValue);
                     }
                     case '$':
                     {
-                        if (!Utf8Parser.TryParse(line.Span, out int length, out var bytesConsumed) || bytesConsumed != line.Length)
+                        if (!Utf8Converter.TryParse(line, out int length, out var bytesConsumed) ||
+                            bytesConsumed != line.Length)
                             throw new ProtocolException("Expected string length");
+
+                        reader.AdvanceTo(nextPosition);
+
                         if (length < 0)
                             return RedisNull.Value;
 
                         Memory<byte> strBuffer = new byte[length + 2];
-                        totalBytesRead = 0;
+                        var totalBytesRead = 0;
                         while (totalBytesRead < strBuffer.Length)
                         {
-                            var bytesRead = await connection.Read(strBuffer.Slice(totalBytesRead));
+                            readResult = await reader.ReadAsync(cancellationToken);
+                            buffer = readResult.Buffer;
+                            var bytesRead = (int)buffer.Length;
                             if (bytesRead == 0)
                                 throw new ProtocolException("Expected fixed size string ended with CRLF");
+                            if (totalBytesRead + bytesRead > strBuffer.Length)
+                            {
+                                bytesRead = strBuffer.Length - totalBytesRead;
+                                buffer = buffer.Slice(buffer.Start, bytesRead);
+                            }
+
+                            buffer.CopyTo(strBuffer.Span.Slice(totalBytesRead));
+                            reader.AdvanceTo(buffer.End);
                             totalBytesRead += bytesRead;
+                            
+                            if (totalBytesRead < strBuffer.Length)
+                                CheckCompletedUnexpectedly(reader, readResult);
                         }
 
                         if (!strBuffer.Span.Slice(length).SequenceEqual(NewLine.Span))
@@ -142,27 +199,39 @@ namespace RedisCore.Internal.Protocol
                     }
                     case '*':
                     {
-                        if (!Utf8Parser.TryParse(line.Span, out int length, out var bytesConsumed) || bytesConsumed != line.Length)
+                        if (!Utf8Converter.TryParse(line, out int length, out var bytesConsumed) || bytesConsumed != line.Length)
                             throw new ProtocolException("Expected array length");
+
+                        reader.AdvanceTo(nextPosition);
+                        
                         if (length < 0)
                             return RedisNull.Value;
                         var items = new List<RedisObject>(length);
                         for (var i = 0; i < length; ++i)
-                            items.Add(await Read(connection));
+                            items.Add(await Read(reader, cancellationToken));
                         return new RedisArray(items);
                     }
                     case '-':
-                        var errorMessagePos = line.Span.IndexOf((byte) ' ') + 1;
-                        if (errorMessagePos <= 0)
-                            return new RedisError(null, Encoding.GetString(line.Span));
-                        return new RedisError(Encoding.GetString(line.Span.Slice(0, errorMessagePos - 1)), Encoding.GetString(line.Span.Slice(errorMessagePos)));
+                        var errorMessagePos = line.PositionOf((byte) ' ');
+                        string type;
+                        string message;
+                        if (errorMessagePos == null)
+                        {
+                            type = null;
+                            message = GetString(line);
+                        }
+                        else
+                        {
+                            type = GetString(line.Slice(0, errorMessagePos.Value));
+                            message = GetString(line.Slice(line.GetPosition(1, errorMessagePos.Value)));
+                        }
+                        
+                        reader.AdvanceTo(nextPosition);
+
+                        return new RedisError(type, message);
                     default:
-                        throw new FormatException($"Invalid line returned from server: {lineType}{Encoding.GetString(line.Span)}");
+                        throw new FormatException($"Invalid line returned from server: {lineType}{GetString(line)}");
                 }
-            }
-            finally 
-            {
-                buffer.Dispose();
             }
         }
     }

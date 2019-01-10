@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <LangVersion>7.3</LangVersion>
-    <Version>0.1.5</Version>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Version>0.2.0</Version>
     <Authors>Vasiliy Novikov</Authors>
     <Description>Light .NET Core Redis client</Description>
     <Copyright>Vasiliy Novikov</Copyright>
@@ -13,4 +13,7 @@
     <PackageTags>redis</PackageTags>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" Version="4.5.*" />
+  </ItemGroup>
 </Project>

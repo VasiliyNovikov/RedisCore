@@ -42,21 +42,25 @@ namespace RedisCore.Internal
                 if (!isUnixEndpoint)
                     socket.NoDelay = true;
                 await socket.ConnectAsync(endPoint);
-                
-                Stream stream = new NetworkStream(socket, false);
-                try
+
+                Stream stream = null;
+                if (_config.UseSsl || _config.ForceUseNetworkStream)
                 {
+                    stream = new NetworkStream(socket, false);
                     if (_config.UseSsl)
                     {
-                        var sslStream = new SslStream(stream);
-                        await sslStream.AuthenticateAsClientAsync(_config.HostName);
-                        stream = sslStream;
+                        try
+                        {
+                            var sslStream = new SslStream(new NetworkStream(socket, false));
+                            await sslStream.AuthenticateAsClientAsync(_config.HostName);
+                            stream = sslStream;
+                        }
+                        catch
+                        {
+                            stream.Dispose();
+                            throw;
+                        }
                     }
-                }
-                catch
-                {
-                    stream.Dispose();
-                    throw;
                 }
 
                 return new Connection(socket, stream, _config.BufferSize);
@@ -68,7 +72,7 @@ namespace RedisCore.Internal
             }
         }
 
-        public async ValueTask<Connection> Aquire()
+        public async ValueTask<Connection> Acquire()
         {
             Connection connection;
             while (_connections.TryTake(out connection))
