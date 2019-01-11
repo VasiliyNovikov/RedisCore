@@ -75,7 +75,6 @@ namespace RedisCore.Tests
                     Assert.AreEqual(testValue2, await client.Get<string>(testKey));
 
                     await client.Delete(testKey);
-                    Assert.IsNull(await client.GetOrDefault<string>(testKey));
                 }
             }
         }
