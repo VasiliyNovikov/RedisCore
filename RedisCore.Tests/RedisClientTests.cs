@@ -74,7 +74,6 @@ namespace RedisCore.Tests
                     Assert.IsTrue(await client.Set(testKey, testValue2, OptimisticConcurrency.IfExists));
                     Assert.AreEqual(testValue2, await client.Get<string>(testKey));
 
-
                     await client.Delete(testKey);
                     Assert.IsNull(await client.GetOrDefault<string>(testKey));
                 }
@@ -140,8 +139,6 @@ namespace RedisCore.Tests
             {
                 var testKey = UniqueString();
                 var testValue = UniqueString();
-
-                Assert.IsFalse(await client.Expire(testKey, expireTime));
 
                 Assert.IsTrue(await client.Set(testKey, testValue, expireTime));
                 Assert.AreEqual(testValue, await client.Get<string>(testKey));
