@@ -19,12 +19,6 @@ namespace RedisCore.Internal
             return await Execute(new GetCommand<T>(key));
         }
 
-        public async ValueTask<T> GetOrDefault<T>(string key, T defaultValue = default)
-        {
-            var result = await Get<T>(key);
-            return result.HasValue ? result.Value : defaultValue;
-        }
-
         public async ValueTask<bool> Set<T>(string key, T value, TimeSpan? expiration = null, OptimisticConcurrency concurrency = OptimisticConcurrency.None)
         {
             return await Execute(new SetCommand<T>(key, value, expiration, concurrency));
