@@ -27,6 +27,7 @@ namespace RedisCore.Internal.Commands
 
         public static readonly RedisString HGet = new RedisByteString("HGET");
         public static readonly RedisString HSet = new RedisByteString("HSET");
+        public static readonly RedisString HSetNX = new RedisByteString("HSETNX");
         public static readonly RedisString HDel = new RedisByteString("HDEL");
         public static readonly RedisString HExists = new RedisByteString("HEXISTS");
         public static readonly RedisString HLen = new RedisByteString("HLEN");

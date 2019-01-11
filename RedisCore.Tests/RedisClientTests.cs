@@ -52,6 +52,35 @@ namespace RedisCore.Tests
         
         [TestMethod]
         [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Set_With_Concurrency_Test(RedisClientConfig config)
+        {
+            using (var client = new RedisClient(config))
+            {
+                for (var i = 0; i < 8; ++i)
+                {
+                    var testKey = UniqueString();
+                    var testValue = UniqueString();
+
+                    Assert.IsFalse(await client.Set(testKey, testValue, OptimisticConcurrency.IfExists));
+                    Assert.IsNull(await client.GetOrDefault<string>(testKey));
+
+                    Assert.IsTrue(await client.Set(testKey, testValue, OptimisticConcurrency.IfNotExists));
+                    Assert.AreEqual(testValue, await client.Get<string>(testKey));
+
+                    var testValue2 = UniqueString();
+                    Assert.IsFalse(await client.Set(testKey, testValue2, OptimisticConcurrency.IfNotExists));
+                    Assert.AreEqual(testValue, await client.Get<string>(testKey));
+
+                    Assert.IsTrue(await client.Set(testKey, testValue2, OptimisticConcurrency.IfExists));
+                    Assert.AreEqual(testValue2, await client.Get<string>(testKey));
+
+                    await client.Delete(testKey);
+                }
+            }
+        }
+        
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
         public async Task RedisClient_Get_Set_Delete_Large_Test(RedisClientConfig config)
         {
             const int valueSize = 0x100000;
@@ -92,6 +121,25 @@ namespace RedisCore.Tests
 
                 Assert.IsTrue(await client.Set(testKey, testValue));
                 Assert.IsTrue(await client.Expire(testKey, expireTime));
+                Assert.AreEqual(testValue, await client.Get<string>(testKey));
+
+                await Task.Delay(expireTime * 1.5);
+
+                Assert.IsNull(await client.GetOrDefault<string>(testKey));
+            }
+        }
+        
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Set_Expire_Test_2(RedisClientConfig config)
+        {
+            var expireTime = TimeSpan.FromSeconds(0.5);
+            using (var client = new RedisClient(config))
+            {
+                var testKey = UniqueString();
+                var testValue = UniqueString();
+
+                Assert.IsTrue(await client.Set(testKey, testValue, expireTime));
                 Assert.AreEqual(testValue, await client.Get<string>(testKey));
 
                 await Task.Delay(expireTime * 1.5);

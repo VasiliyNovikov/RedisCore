@@ -1,12 +1,15 @@
-﻿using RedisCore.Internal.Protocol;
+﻿using System;
+using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Internal.Commands
 {
     internal class HashSetCommand<T> : IntAsBoolCommand
     {
-        public HashSetCommand(string key, string field, T value) 
-            : base(CommandNames.HSet, key.ToValue(), field.ToValue(), value.ToValue())
+        public HashSetCommand(string key, string field, T value, OptimisticConcurrency concurrency = OptimisticConcurrency.None) 
+            : base(concurrency == OptimisticConcurrency.None ? CommandNames.HSet : CommandNames.HSetNX, key.ToValue(), field.ToValue(), value.ToValue())
         {
+            if (concurrency == OptimisticConcurrency.IfExists)
+                throw new NotSupportedException();
         }
     }
 }
