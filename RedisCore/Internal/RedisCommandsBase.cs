@@ -25,9 +25,9 @@ namespace RedisCore.Internal
             return result.HasValue ? result.Value : defaultValue;
         }
 
-        public async ValueTask<bool> Set<T>(string key, T value)
+        public async ValueTask<bool> Set<T>(string key, T value, TimeSpan? expiration = null, OptimisticConcurrency concurrency = OptimisticConcurrency.None)
         {
-            return await Execute(new SetCommand<T>(key, value));
+            return await Execute(new SetCommand<T>(key, value, expiration, concurrency));
         }
 
         public async ValueTask<bool> Delete(string key)
@@ -80,9 +80,9 @@ namespace RedisCore.Internal
             return await Execute(new HashGetCommand<T>(key, field));
         }
 
-        public async ValueTask<bool> HashSet<T>(string key, string field, T value)
+        public async ValueTask<bool> HashSet<T>(string key, string field, T value, OptimisticConcurrency concurrency = OptimisticConcurrency.None)
         {
-            return await Execute(new HashSetCommand<T>(key, field, value));
+            return await Execute(new HashSetCommand<T>(key, field, value, concurrency));
         }
 
         public async ValueTask<bool> HashDelete(string key, string field)
