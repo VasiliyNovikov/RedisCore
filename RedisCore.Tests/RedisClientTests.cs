@@ -325,5 +325,25 @@ namespace RedisCore.Tests
                 }
             }
         }
+
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_PubSub_Subscribe_Publish_Unsubscribe_Ping_Test(RedisClientConfig config)
+        {
+            using (var client = new RedisClient(config))
+            {
+                for (var i = 0; i < 3; ++i)
+                {
+                    var testChannel = UniqueString();
+                    using (var subscription = await client.Subscribe(testChannel))
+                    {
+                        await client.Publish(testChannel, "Whatever...");
+                        await subscription.Unsubscribe();
+                    }
+
+                    await client.Ping();
+                }
+            }
+        }
     }
 }

@@ -304,8 +304,9 @@ namespace RedisCore
             var connection = await AcquireConnection();
             try
             {
-                await Execute(connection, new SubscribeCommand(channel));
-                return new Subscription(this, connection);
+                var subscription = new Subscription(this, connection, channel);
+                await subscription.Subscribe();
+                return subscription;
             }
             catch
             {
@@ -320,15 +321,17 @@ namespace RedisCore
         {
             private readonly RedisClient _client;
             private readonly Connection _connection;
+            private readonly string _channel;
             private bool _unsubscribed;
             private bool _disposed;
 
-            public Subscription(RedisClient client, Connection connection)
+            public Subscription(RedisClient client, Connection connection, string channel)
             {
                 _client = client;
                 _connection = connection;
+                _channel = channel;
             }
-            
+
             public void Dispose()
             {
                 if (_disposed)
@@ -347,39 +350,42 @@ namespace RedisCore
                     throw new ObjectDisposedException("Redis subscription");
             }
 
-            public async ValueTask Unsubscribe()
+            private async ValueTask SendCommand<T>(Command<T> cmd)
             {
-                CheckDisposed();
-                while (true)
+                try
                 {
-                    RedisObject result;
-                    try
-                    {
-                        result = await _client.Execute(_connection, new RedisArray(CommandNames.Unsubscribe));
-                    }
-                    catch (Exception e)
-                    {
-                        if (WrapException(_connection, e, out var redisException))
-                            throw redisException;
-                        throw;
-                    }
-    
-                    var resultArray = ((RedisArray)CheckError(result)).Items;
-                    if (((RedisValueObject) resultArray[0]).To<string>() != "unsubscribe") 
-                        continue;
-                    
-                    _unsubscribed = true;
-                    return;
+                    ProtocolHandler.Write(_connection.Output, cmd.Data);
+                    await _connection.Output.FlushAsync();
+                }
+                catch (Exception e)
+                {
+                    if (WrapException(_connection, e, out var redisException))
+                        throw redisException;
+                    throw;
                 }
             }
 
-            public async ValueTask<T> GetMessage<T>(CancellationToken cancellationToken = default)
+            internal async ValueTask Subscribe()
+            {
+                await SendCommand(new SubscribeCommand(_channel));
+                await GetMessage<int>("subscribe");
+            }
+
+            public async ValueTask Unsubscribe()
+            {
+                CheckDisposed();
+                await SendCommand(new UnsubscribeCommand());
+                await GetMessage<int>("unsubscribe");
+                _unsubscribed = true;
+            }
+
+            private async ValueTask<T> GetMessage<T>(string name, CancellationToken cancellationToken = default)
             {
                 CheckDisposed();
                 while (true)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    
+
                     RedisObject result;
                     try
                     {
@@ -391,11 +397,16 @@ namespace RedisCore
                             throw redisException;
                         throw;
                     }
-    
-                    var resultArray = ((RedisArray)CheckError(result)).Items;
-                    if (((RedisValueObject) resultArray[0]).To<string>() == "message")
+
+                    var resultArray = ((RedisArray) CheckError(result)).Items;
+                    if (((RedisValueObject) resultArray[0]).To<string>() == name)
                         return ((RedisValueObject) resultArray[2]).To<T>();
                 }
+            }
+
+            public async ValueTask<T> GetMessage<T>(CancellationToken cancellationToken = default)
+            {
+                return await GetMessage<T>("message", cancellationToken);
             }
         }
 
