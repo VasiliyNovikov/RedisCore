@@ -49,11 +49,12 @@ jobs:
     - task: DotNetCoreCLI@2
       displayName: Pack
       inputs:
-        command: pack
-        packagesToPack: '**/RedisCore.csproj'
+        command: custom
+        custom: pack
+        #packagesToPack: '**/RedisCore.csproj'
         nobuild: true
         #${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-        arguments: --version-suffix -beta
+        arguments: ./RedisCore/RedisCore.csproj --output $(build.artifactstagingdirectory) --version-suffix -beta
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact
