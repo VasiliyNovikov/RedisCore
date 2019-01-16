@@ -53,7 +53,7 @@ jobs:
         packagesToPack: '**/RedisCore.csproj'
         nobuild: true
         ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-          arguments: --version-suffix "-beta"
+          arguments: --version-suffix -beta
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact
