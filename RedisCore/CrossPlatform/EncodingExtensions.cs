@@ -2,7 +2,7 @@
 using System;
 using System.Text;
 
-namespace RedisCore.Utils
+namespace RedisCore.CrossPlatform
 {
     public static class EncodingExtensions
     {

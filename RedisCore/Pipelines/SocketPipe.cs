@@ -2,7 +2,7 @@ using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 #if NETSTANDARD2_0
-using RedisCore.Utils;
+using RedisCore.CrossPlatform;
 #endif
 
 namespace RedisCore.Pipelines

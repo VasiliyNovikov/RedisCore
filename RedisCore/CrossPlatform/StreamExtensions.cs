@@ -3,8 +3,9 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using RedisCore.Utils;
 
-namespace RedisCore.Utils
+namespace RedisCore.CrossPlatform
 {
     public static class StreamExtensions
     {

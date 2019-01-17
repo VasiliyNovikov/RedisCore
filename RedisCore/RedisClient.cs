@@ -9,6 +9,9 @@ using RedisCore.Internal;
 using RedisCore.Internal.Commands;
 using RedisCore.Internal.Protocol;
 using RedisCore.Utils;
+#if NETSTANDARD2_0
+using RedisCore.CrossPlatform;
+#endif
 
 namespace RedisCore
 {

@@ -1,7 +1,7 @@
 #if NETSTANDARD2_0
 using System;
 
-namespace RedisCore.Utils
+namespace RedisCore.CrossPlatform
 {
     public static class TimeSpanExtensions
     {
@@ -9,7 +9,7 @@ namespace RedisCore.Utils
         {
             if (Double.IsNaN(factor))
                 throw new ArgumentException("Factor can't be NaN", nameof (factor));
-            var num = Math.Round((double) timeSpan.Ticks * factor);
+            var num = Math.Round(timeSpan.Ticks * factor);
             if (num > Int64.MaxValue | num < Int64.MinValue)
                 throw new OverflowException("Result TimeSpan is too long");
             return TimeSpan.FromTicks((long) num);

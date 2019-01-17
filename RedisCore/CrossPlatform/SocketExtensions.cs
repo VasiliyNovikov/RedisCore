@@ -3,8 +3,9 @@ using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using RedisCore.Utils;
 
-namespace RedisCore.Utils
+namespace RedisCore.CrossPlatform
 {
     public static class SocketExtensions
     {
