@@ -17,9 +17,9 @@ jobs:
       displayName: Install Redis
 
   - task: DotNetCoreInstaller@0
-    displayName: 'Use .NET Core SDK 2.2.103'
+    displayName: 'Use .NET Core SDK 2.2.102'
     inputs:
-      version: 2.2.103
+      version: 2.2.102
 
   - task: DotNetCoreCLI@2
     displayName: Restore
