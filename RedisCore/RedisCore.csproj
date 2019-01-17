@@ -21,5 +21,6 @@
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Memory" Version="4.*" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.*"/>
   </ItemGroup>
 </Project>
