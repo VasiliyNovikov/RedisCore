@@ -49,12 +49,17 @@ jobs:
     - task: DotNetCoreCLI@2
       displayName: Pack
       inputs:
-        command: pack
-        packagesToPack: '**/RedisCore.csproj'
-        nobuild: true
+        ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+          command: pack
+          packagesToPack: '**/RedisCore.csproj'
+          nobuild: true
+        ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+          command: custom
+          custom: pack
+          arguments: $(Build.SourcesDirectory)/RedisCore/RedisCore.csproj --output $(Build.ArtifactStagingDirectory) --no-build --version-suffix -beta-$(Build.BuildNumber)
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact
       inputs:
-        PathtoPublish: '$(build.artifactstagingdirectory)'
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: drop
