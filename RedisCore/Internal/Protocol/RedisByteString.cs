@@ -1,5 +1,5 @@
 ﻿using System;
-#if NETSTANDARD2_0
+#if NETSTANDARD
 using RedisCore.CrossPlatform;
 #endif
 

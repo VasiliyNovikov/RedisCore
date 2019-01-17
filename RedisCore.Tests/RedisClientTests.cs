@@ -5,6 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RedisCore.Utils;
+#if NETSTANDARD
+using RedisCore.CrossPlatform;
+#endif
 
 namespace RedisCore.Tests
 {

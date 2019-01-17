@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RedisCore.Utils;
-#if NETSTANDARD2_0
+#if NETSTANDARD
 using RedisCore.CrossPlatform;
 #endif
 

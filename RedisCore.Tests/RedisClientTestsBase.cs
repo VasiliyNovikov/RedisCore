@@ -28,7 +28,7 @@ namespace RedisCore.Tests
                         BufferSize = bufferSize,
                         ForceUseNetworkStream = forceUseNetworkStream
                     };
-#if (!NETSTANDARD2_0 && !NETCOREAPP2_0)
+#if NETSTANDARD
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                         yield return new RedisClientConfig(new UnixDomainSocketEndPoint("/var/run/redis/redis.sock"))
                         {

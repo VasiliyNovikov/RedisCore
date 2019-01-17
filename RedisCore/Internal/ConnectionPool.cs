@@ -35,7 +35,7 @@ namespace RedisCore.Internal
         private async ValueTask<Connection> Create()
         {
             var endPoint = _config.EndPoint;
-#if NETSTANDARD2_0
+#if NETSTANDARD
             const ProtocolType protocolType = ProtocolType.Tcp;
 #else
             var isUnixEndpoint = endPoint is UnixDomainSocketEndPoint;
@@ -44,7 +44,7 @@ namespace RedisCore.Internal
             var socket = new Socket(endPoint.AddressFamily, SocketType.Stream, protocolType);
             try
             {
-#if !NETSTANDARD2_0
+#if !NETSTANDARD
                 if (!isUnixEndpoint)
                     socket.NoDelay = true;
 #endif
@@ -118,7 +118,7 @@ namespace RedisCore.Internal
             _disposed = true;
             _event.Set();
             _maintainTask.Wait();
-#if NETSTANDARD2_0
+#if NETSTANDARD
             while (_connections.TryTake(out var connection))
                 connection.Dispose();
 #else

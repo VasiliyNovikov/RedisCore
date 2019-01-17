@@ -1,7 +1,7 @@
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading.Tasks;
-#if NETSTANDARD2_0
+#if NETSTANDARD
 using RedisCore.CrossPlatform;
 #endif
 

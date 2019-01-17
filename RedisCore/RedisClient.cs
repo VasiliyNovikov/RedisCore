@@ -9,7 +9,7 @@ using RedisCore.Internal;
 using RedisCore.Internal.Commands;
 using RedisCore.Internal.Protocol;
 using RedisCore.Utils;
-#if NETSTANDARD2_0
+#if NETSTANDARD
 using RedisCore.CrossPlatform;
 #endif
 

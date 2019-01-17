@@ -57,13 +57,13 @@ namespace RedisCore
 
         public override string ToString()
         {
-#if NETSTANDARD2_0
+#if NETSTANDARD
             var schema = UseSsl ? "ssl" : "tcp";
 #else
             var schema = EndPoint is UnixDomainSocketEndPoint ? "unix" : (UseSsl ? "ssl" : "tcp");
 #endif
             string address;
-#if !NETSTANDARD2_0
+#if !NETSTANDARD
             if (EndPoint is UnixDomainSocketEndPoint)
                 address = EndPoint.ToString();
             else
