@@ -56,7 +56,7 @@ jobs:
         ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
           command: custom
           custom: pack
-          arguments: ./RedisCore/RedisCore.csproj --output $(build.artifactstagingdirectory) --no-build --version-suffix -beta
+          arguments: ./RedisCore/RedisCore.csproj --output $(build.artifactstagingdirectory) --no-build --version-suffix -beta-$(Rev:r)
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact
