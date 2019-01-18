@@ -7,9 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RedisCore.Utils;
-#if NETSTANDARD
-using RedisCore.CrossPlatform;
-#endif
 
 namespace RedisCore.Internal.Protocol
 {

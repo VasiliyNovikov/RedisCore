@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RedisCore.Utils;
 
-namespace RedisCore.CrossPlatform
+namespace RedisCore
 {
     public static class StreamExtensions
     {

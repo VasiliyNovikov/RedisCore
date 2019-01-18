@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using RedisCore.Utils;
 
-namespace RedisCore.CrossPlatform
+namespace RedisCore
 {
     public static class SocketExtensions
     {

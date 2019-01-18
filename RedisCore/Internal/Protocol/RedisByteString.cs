@@ -1,7 +1,4 @@
 ﻿using System;
-#if NETSTANDARD
-using RedisCore.CrossPlatform;
-#endif
 
 namespace RedisCore.Internal.Protocol
 {

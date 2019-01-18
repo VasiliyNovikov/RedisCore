@@ -1,7 +1,7 @@
 #if NETSTANDARD
 using System;
 
-namespace RedisCore.CrossPlatform
+namespace RedisCore
 {
     public static class TimeSpanExtensions
     {

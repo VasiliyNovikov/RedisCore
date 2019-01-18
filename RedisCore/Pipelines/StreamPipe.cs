@@ -1,9 +1,6 @@
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading.Tasks;
-#if NETSTANDARD
-using RedisCore.CrossPlatform;
-#endif
 
 namespace RedisCore.Pipelines
 {
