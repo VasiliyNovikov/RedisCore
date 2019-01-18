@@ -41,7 +41,6 @@ namespace RedisCore.Internal
             {
                 if (!isUnixEndpoint)
                     socket.NoDelay = true;
-
                 await socket.ConnectAsync(endPoint);
 
                 Stream stream = null;
