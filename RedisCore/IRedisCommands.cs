@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using RedisCore.Utils;
 
 namespace RedisCore
 {
@@ -19,17 +20,38 @@ namespace RedisCore
         ValueTask<Optional<T>> RightPopLeftPush<T>(string source, string destination);
         ValueTask<Optional<T>> BlockingRightPopLeftPush<T>(string source, string destination, TimeSpan timeout);
         ValueTask<Optional<T>> ListIndex<T>(string key, int index);
+        ValueTask<int> ListLength(string key);
         
         ValueTask<Optional<T>> HashGet<T>(string key, string field);
         ValueTask<bool> HashSet<T>(string key, string field, T value, OptimisticConcurrency concurrency = OptimisticConcurrency.None);
         ValueTask<bool> HashDelete(string key, string field);
         ValueTask<bool> HashExists(string key, string field);
         ValueTask<int> HashLength(string key);
-        ValueTask<IEnumerable<string>> HashKeys(string key);
-        ValueTask<IEnumerable<T>> HashValues<T>(string key);
-        ValueTask<IEnumerable<KeyValuePair<string, T>>> HashItems<T>(string key);
+        ValueTask<HashSet<string>> HashKeys(string key);
+        ValueTask<T[]> HashValues<T>(string key);
+        ValueTask<Dictionary<string, T>> HashItems<T>(string key);
         
         ValueTask<int> Publish<T>(string channel, T message);
+
+        ValueTask<TResult> Eval<TResult>(string script, params string[] keys);
+        ValueTask<TResult> Eval<T, TResult>(string script, T arg, params string[] keys);
+        ValueTask<TResult> Eval<T1, T2, TResult>(string script, T1 arg1, T2 arg2, params string[] keys);
+        ValueTask<TResult> Eval<T1, T2, T3, TResult>(string script, T1 arg1, T2 arg2, T3 arg3, params string[] keys);
+    }
+
+    public interface IRedisBufferCommands
+    {
+        ValueTask<Memory<byte>?> Get(string key, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> LeftPop<T>(string key, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> RightPop<T>(string key, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> RightPopLeftPush<T>(string source, string destination, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> BlockingRightPopLeftPush<T>(string source, string destination, TimeSpan timeout, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> ListIndex<T>(string key, int index, IBufferPool<byte> bufferPool);
+        
+        ValueTask<Memory<byte>?> Eval(IBufferPool<byte> bufferPool, string script, params string[] keys);
+        ValueTask<Memory<byte>?> Eval<T>(IBufferPool<byte> bufferPool, string script, T arg, params string[] keys);
+        ValueTask<Memory<byte>?> Eval<T1, T2>(IBufferPool<byte> bufferPool, string script, T1 arg1, T2 arg2, params string[] keys);
+        ValueTask<Memory<byte>?> Eval<T1, T2, T3>(IBufferPool<byte> bufferPool, string script, T1 arg1, T2 arg2, T3 arg3, params string[] keys);
     }
 
     public static class RedisCommandsExtensions

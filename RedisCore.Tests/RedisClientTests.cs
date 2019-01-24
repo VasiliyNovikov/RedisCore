@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -106,6 +107,32 @@ namespace RedisCore.Tests
                 }
             }
         }
+        
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Get_Set_Delete_Buffered_Test(RedisClientConfig config)
+        {
+            var rnd = new Random();
+            using (var bufferPool = BufferPool.Create<byte>())
+            using (var client = new RedisClient(config))
+            {
+                for (var i = 0; i < 8; ++i)
+                {
+                    var testKey = UniqueString();
+                    var testValue = bufferPool.RentMemory(16384);
+                    rnd.NextBytes(testValue.Span);
+
+                    Assert.AreEqual(null, await client.Get(testKey, bufferPool));
+
+                    await client.Set(testKey, testValue);
+
+                    CollectionAssert.AreEqual(testValue.ToArray(), (await client.Get(testKey, bufferPool)).Value.ToArray());
+                    
+                    await client.Delete(testKey);
+                    Assert.AreEqual(null, await client.Get(testKey, bufferPool));
+                }
+            }
+        }
 
         [TestMethod]
         [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
@@ -166,6 +193,31 @@ namespace RedisCore.Tests
 
                     await client.Delete(testKey);
                     Assert.IsNull(await client.GetOrDefault<int?>(testKey));
+                }
+            }
+        }
+        
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Hash_Get_Keys_Values_All_Test(RedisClientConfig config)
+        {
+            using (var client = new RedisClient(config))
+            {
+                var testHash = UniqueString();
+                var testData = Enumerable.Range(0, 5).ToDictionary(_ => UniqueString(), _ => UniqueString());
+
+                try
+                {
+                    foreach (var (key, value) in testData)
+                        Assert.IsTrue(await client.HashSet(testHash, key, value));
+                    
+                    CollectionAssert.AreEquivalent(testData.Keys, (await client.HashKeys(testHash)).ToArray());
+                    CollectionAssert.AreEquivalent(testData.Values, await client.HashValues<string>(testHash));
+                    CollectionAssert.AreEquivalent(testData, await client.HashItems<string>(testHash));
+                }
+                finally
+                {
+                    await client.Delete(testHash);    
                 }
             }
         }
@@ -248,9 +300,40 @@ namespace RedisCore.Tests
                         {
                             var testMsg = testMsgBase + j;
                             await client.Publish(testChannel, testMsg);
-                            var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
-                            var actualMsg = await subscription.GetMessage<string>(cancellationSource.Token);
-                            Assert.AreEqual(testMsg, actualMsg);
+                            using (var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.5)))
+                            {
+                                var actualMsg = await subscription.GetMessage<string>(cancellationSource.Token);
+                                Assert.AreEqual(testMsg, actualMsg);
+                            }
+                        }
+
+                        await subscription.Unsubscribe();
+                    }
+                }
+            }
+        }
+        
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_PubSub_Send_Receive_Buffered_Test(RedisClientConfig config)
+        {
+            var rnd = new Random();
+            using (var bufferPool = BufferPool.Create<byte>())
+            using (var client = new RedisClient(config))
+            {
+                for (var i = 0; i < 4; ++i)
+                {
+                    var testChannel = UniqueString();
+                    using (var subscription = await client.Subscribe(testChannel))
+                    {
+                        for (var j = 0; j < 8; ++j)
+                        {
+                            var testMsg = bufferPool.RentMemory(16384);
+                            rnd.NextBytes(testMsg.Span);
+                            
+                            await client.Publish(testChannel, testMsg);
+                            using (var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.5)))
+                                CollectionAssert.AreEqual(testMsg.ToArray(), (await subscription.GetMessage(bufferPool, cancellationSource.Token)).ToArray());
                         }
 
                         await subscription.Unsubscribe();
@@ -277,11 +360,13 @@ namespace RedisCore.Tests
                             await client.Publish(testChannel, testMsg);
                         }
 
-                        var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-                        foreach (var testMsg in messages)
+                        using (var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(1)))
                         {
-                            var actualMsg = await subscription.GetMessage<string>(cancellationSource.Token);
-                            Assert.AreEqual(testMsg, actualMsg);
+                            foreach (var testMsg in messages)
+                            {
+                                var actualMsg = await subscription.GetMessage<string>(cancellationSource.Token);
+                                Assert.AreEqual(testMsg, actualMsg);
+                            }
                         }
 
                         await subscription.Unsubscribe();
@@ -303,22 +388,26 @@ namespace RedisCore.Tests
                     {
                         for (var j = 0; j < 2; ++j)
                         {
-                            var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.2));
-                            try
+                            using (var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.2)))
                             {
-                                await subscription.GetMessage<string>(cancellationSource.Token);
-                                Assert.Fail("Expected cancellation exception");
-                            }
-                            catch (OperationCanceledException)
-                            {
+                                try
+                                {
+                                    await subscription.GetMessage<string>(cancellationSource.Token);
+                                    Assert.Fail("Expected cancellation exception");
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                }
                             }
                         }
 
                         var testMsg = UniqueString();
                         await client.Publish(testChannel, testMsg);
-                        var cancellationSource2 = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
-                        var actualMsg = await subscription.GetMessage<string>(cancellationSource2.Token);
-                        Assert.AreEqual(testMsg, actualMsg);
+                        using (var cancellationSource2 = new CancellationTokenSource(TimeSpan.FromSeconds(0.5)))
+                        {
+                            var actualMsg = await subscription.GetMessage<string>(cancellationSource2.Token);
+                            Assert.AreEqual(testMsg, actualMsg);
+                        }
 
                         await subscription.Unsubscribe();
                     }
@@ -342,6 +431,144 @@ namespace RedisCore.Tests
                     }
 
                     await client.Ping();
+                }
+            }
+        }
+        
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Eval_Echo_Test(RedisClientConfig config)
+        {
+            using (var client = new RedisClient(config))
+            {
+                var testValue = UniqueString();
+                var value = await client.Eval<string, string>("return ARGV[1]", testValue);
+                Assert.AreEqual(testValue, value);
+            }
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Eval_Echo_Int_Test(RedisClientConfig config)
+        {
+            using (var client = new RedisClient(config))
+            {
+                const int testValue = 42;
+                var value = await client.Eval<int?, int?>("return ARGV[1]", testValue);
+                Assert.AreEqual(testValue, value);
+            }
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Eval_Echo_Buffered_Test(RedisClientConfig config)
+        {
+            using (var bufferPool = BufferPool.Create<byte>())
+            using (var client = new RedisClient(config))
+            {
+                var testValue = UniqueBinary(1024);
+                var value = await client.Eval<Memory<byte>>(bufferPool, "return ARGV[1]", testValue);
+                CollectionAssert.AreEqual(testValue, value.Value.ToArray());
+            }
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Set_Eval_Get_Test(RedisClientConfig config)
+        {
+            using (var client = new RedisClient(config))
+            {
+                var testKey = UniqueString();
+                var testValue = UniqueString();
+
+                await client.Set(testKey, testValue);
+                try
+                {
+                    var value = await client.Eval<string>("return redis.call('GET', KEYS[1])", testKey);
+                    Assert.AreEqual(testValue, value);
+                }
+                finally
+                {
+                    await client.Delete(testKey);
+                }
+            }
+        }
+        
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Set_2_Eval_Get_2_Test(RedisClientConfig config)
+        {
+            using (var client = new RedisClient(config))
+            {
+                var testKey1 = UniqueString();
+                var testKey2 = UniqueString();
+                var testValue1 = UniqueString();
+                var testValue2 = UniqueString();
+
+                const string script = 
+@"local data1 = redis.call('GET', KEYS[1])
+local data2 = redis.call('GET', KEYS[2])
+return {data1, data2}";
+
+                await client.Set(testKey1, testValue1);
+                await client.Set(testKey2, testValue2);
+                try
+                {
+                    var values = await client.Eval<IReadOnlyList<string>>(script, testKey1, testKey2);
+                    Assert.AreEqual(testValue1, values[0]);
+                    Assert.AreEqual(testValue2, values[1]);
+                }
+                finally
+                {
+                    await client.Delete(testKey1);
+                    await client.Delete(testKey2);
+                }
+            }
+        }
+        
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Eval_Get_Optional_Test(RedisClientConfig config)
+        {
+            using (var client = new RedisClient(config))
+            {
+                const string testValue = "123";
+                Assert.AreEqual(testValue, (await client.Eval<Optional<string>>($"return '{testValue}'")).Value);
+                Assert.IsFalse((await client.Eval<Optional<string>>("return false")).HasValue);
+            }
+        }
+        
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Eval_Move_From_Key_To_List_Test(RedisClientConfig config)
+        {
+            using (var client = new RedisClient(config))
+            {
+                var testKey = UniqueString();
+                var testList = UniqueString();
+                var testValue = UniqueBinary(65536);
+
+                const string script = 
+@"local data = redis.call('GET', KEYS[1])
+if data then
+    redis.call('LPUSH', KEYS[2], data)
+end
+return 0";
+
+                try
+                {
+                    await client.Eval<bool>(script, testKey, testList);
+                    Assert.AreEqual(0, await client.ListLength(testList));
+
+                    await client.Set(testKey, testValue);
+                    await client.Eval<bool>(script, testKey, testList);
+                    Assert.AreEqual(1, await client.ListLength(testList));
+                    CollectionAssert.AreEqual(testValue, (await client.LeftPop<byte[]>(testList)).Value);
+                }
+                finally
+                {
+                    await client.Delete(testKey);
+                    await client.Delete(testList);
                 }
             }
         }

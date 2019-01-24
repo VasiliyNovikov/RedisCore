@@ -123,7 +123,7 @@ namespace RedisCore.Internal.Protocol
             }
         }
 
-        public static async ValueTask<RedisObject> Read(PipeReader reader, CancellationToken cancellationToken = default)
+        public static async ValueTask<RedisObject> Read(PipeReader reader, IBufferPool<byte> bufferPool, CancellationToken cancellationToken = default)
         {
             while (true)
             {
@@ -169,11 +169,11 @@ namespace RedisCore.Internal.Protocol
                         if (length < 0)
                             return RedisNull.Value;
 
-                        Memory<byte> strBuffer = new byte[length + 2];
+                        var strBuffer = bufferPool.RentMemory(length + 2);
                         var totalBytesRead = 0;
                         while (totalBytesRead < strBuffer.Length)
                         {
-                            readResult = await reader.ReadAsync(cancellationToken);
+                            readResult = await reader.ReadAsync();
                             buffer = readResult.Buffer;
                             var bytesRead = (int)buffer.Length;
                             if (bytesRead == 0)
@@ -208,7 +208,7 @@ namespace RedisCore.Internal.Protocol
                             return RedisNull.Value;
                         var items = new List<RedisObject>(length);
                         for (var i = 0; i < length; ++i)
-                            items.Add(await Read(reader, cancellationToken));
+                            items.Add(await Read(reader, bufferPool));
                         return new RedisArray(items);
                     }
                     case '-':

@@ -29,6 +29,8 @@ namespace RedisCore
 
         public bool ForceUseNetworkStream { get; set; }
 
+        public bool UseBufferPool { get; set; } = true;
+
         public TimeSpan LoadingRetryDelayMin { get; set; } = TimeSpan.FromMilliseconds(20);
         
         public TimeSpan LoadingRetryDelayMax { get; set; } = TimeSpan.FromMilliseconds(200);

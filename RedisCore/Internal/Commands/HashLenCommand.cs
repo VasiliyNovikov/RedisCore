@@ -8,7 +8,5 @@ namespace RedisCore.Internal.Commands
             : base(CommandNames.HLen, key.ToValue())
         {
         }
-
-        public override int GetResult(RedisObject resultObject) => (int)(((RedisInteger)resultObject).Value);
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using RedisCore.Utils;
 
 namespace RedisCore.Internal.Protocol
@@ -24,7 +26,25 @@ namespace RedisCore.Internal.Protocol
         {
             return Converter<RedisInteger, T>.Invoke(value);
         }
-        
+
+        public static T To<T>(this RedisArray value)
+        {
+            return CollectionConverter<T>.Invoke(value);
+        }
+
+        public static T To<T>(this RedisObject value)
+        {
+            switch (value)
+            {
+                case RedisValueObject valueValue:
+                    return valueValue.To<T>();
+                case RedisArray arrayValue:
+                    return arrayValue.To<T>();
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
         public static T To<T>(this RedisValueObject value)
         {
             switch (value)
@@ -55,6 +75,29 @@ namespace RedisCore.Internal.Protocol
             }
         }
 
+        public static Memory<byte>? To(this RedisObject value, IBufferPool<byte> bufferPool)
+        {
+            switch (value)
+            {
+                case RedisByteString byteValue:
+                {
+                    var result = bufferPool.RentMemory(byteValue.ByteLength);
+                    byteValue.Value.CopyTo(result);
+                    return result;
+                }
+                case RedisCharString charValue:
+                {
+                    var result = bufferPool.RentMemory(charValue.ByteLength);
+                    ProtocolHandler.Encoding.GetBytes(charValue.Value, result.Span);
+                    return result;
+                }
+                case RedisNull _:
+                    return null;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
         public static RedisValueObject ToValue<T>(this T value)
         {
             return Creator<T>.Invoke(value);
@@ -64,6 +107,8 @@ namespace RedisCore.Internal.Protocol
         {
             Creator<string>.Implement(v => v == null ? (RedisValueObject)RedisNull.Value : new RedisCharString(v));
             Creator<byte[]>.Implement(v => v == null ? (RedisValueObject)RedisNull.Value : new RedisByteString(v));
+            Creator<ReadOnlyMemory<byte>>.Implement(v => v.IsEmpty ? (RedisValueObject)RedisNull.Value : new RedisByteString(v));
+            Creator<Memory<byte>>.Implement(v => v.IsEmpty ? (RedisValueObject)RedisNull.Value : new RedisByteString(v));
             void CreateStringWithUtf8<T>() where T : struct
             {
                 Creator<T>.Implement(v =>
@@ -135,7 +180,7 @@ namespace RedisCore.Internal.Protocol
             Converter<RedisInteger, bool?>.Implement(v => v.Value != 0);
         }
         
-        private class Creator<T> : Functionality<T>
+        private class Creator<T> : Functionality<Creator<T>, T>
         {
             private readonly Func<T, RedisValueObject> _create;
 
@@ -143,30 +188,98 @@ namespace RedisCore.Internal.Protocol
 
             public static void Implement(Func<T, RedisValueObject> create)
             {
-                Implementation<Creator<T>>.Instance = new Creator<T>(create);
+                Instance = new Creator<T>(create);
             }
 
             public static RedisValueObject Invoke(T value)
             {
-                return Implementation<Creator<T>>.Instance._create(value);
+                return Instance._create(value);
             }
         }
         
-        private class Converter<TValue, T> : Functionality<T>
-            where TValue : RedisValueObject
+        private class Converter<TValue, T> : Functionality<Converter<TValue, T>, T>
+            where TValue : RedisObject
         {
             private readonly Func<TValue, T> _convert;
 
-            private Converter(Func<TValue, T> convert) => _convert = convert;
+            internal Converter(Func<TValue, T> convert) => _convert = convert;
+
+            public T Convert(TValue value) => _convert(value);
 
             public static void Implement(Func<TValue, T> convert)
             {
-                Implementation<Converter<TValue, T>>.Instance = new Converter<TValue, T>(convert);
+                Instance = new Converter<TValue, T>(convert);
+                Converter<TValue, Optional<T>>.Instance = new Converter<TValue, Optional<T>>(value => value is RedisNull ? Optional<T>.Unspecified : convert(value));
             }
 
             public static T Invoke(TValue value)
             {
-                return Implementation<Converter<TValue, T>>.Instance._convert(value);
+                return Instance.Convert(value);
+            }
+        }
+
+        private class CollectionConverter<T> : DynamicFunctionality<CollectionConverter<T>, Converter<RedisArray, T>, T>
+        {
+            protected override Converter<RedisArray, T> CreateInstance()
+            {
+                var type = typeof(T);
+                Type elementType;
+                string methodName;
+                if (type.IsArray)
+                {
+                    elementType = type.GetElementType();
+                    methodName = nameof(CreateArray);
+                }
+                else if (type.IsGenericType)
+                {
+                    elementType = type.GetGenericArguments()[0];
+                    if (type.IsAssignableFrom(elementType.MakeArrayType()))
+                        methodName = nameof(CreateArray);
+                    else if (type.IsAssignableFrom(typeof(List<>).MakeGenericType(elementType)))
+                        methodName = nameof(CreateList);
+                    else if (type.IsAssignableFrom(typeof(HashSet<>).MakeGenericType(elementType)))
+                        methodName = nameof(CreateSet);
+                    else
+                        throw new NotSupportedException($"{type} is not supported collection type");
+                }
+                else
+                    throw new NotSupportedException($"{type} is not supported collection type");
+                
+                var method = typeof(CollectionConverter<T>).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic)
+                                                           .MakeGenericMethod(elementType);
+                return new Converter<RedisArray, T>((Func<RedisArray, T>) Delegate.CreateDelegate(typeof(Func<RedisArray, T>), method));
+            }
+
+            private static TItem[] CreateArray<TItem>(RedisArray value)
+            {
+                var items = value.Items;
+                var result = new TItem[items.Count];
+                for (var i = 0; i < items.Count; ++i) 
+                    result[i] = items[i].To<TItem>();
+                return result;
+            }
+
+            private static List<TItem> CreateList<TItem>(RedisArray value)
+            {
+                var items = value.Items;
+                var result = new List<TItem>(items.Count);
+                foreach (var item in items)
+                    result.Add(item.To<TItem>());
+                return result;
+            }
+            
+            private static HashSet<TItem> CreateSet<TItem>(RedisArray value)
+            {
+                var items = value.Items;
+                var result = new HashSet<TItem>(items.Count);
+                foreach (var item in items)
+                    result.Add(item.To<TItem>());
+                return result;
+            }
+
+            public static T Invoke(RedisArray value)
+            {
+                return Instance.Convert(value);
             }
         }
     }

@@ -8,12 +8,5 @@ namespace RedisCore.Internal.Commands
             : base(name, args)
         {
         }
-
-        public override Optional<T> GetResult(RedisObject resultObject)
-        {
-            return resultObject == RedisNull.Value
-                ? Optional<T>.Unspecified
-                : ((RedisValueObject) resultObject).To<T>();
-        }
     }
 }

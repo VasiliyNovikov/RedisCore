@@ -8,7 +8,5 @@ namespace RedisCore.Internal.Commands
             : base(CommandNames.Publish, channel.ToValue(), message.ToValue())
         {
         }
-
-        public override int GetResult(RedisObject resultObject) => (int)(((RedisInteger)resultObject).Value);
     }
 }

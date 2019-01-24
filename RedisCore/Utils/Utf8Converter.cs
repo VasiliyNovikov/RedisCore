@@ -71,43 +71,43 @@ namespace RedisCore.Utils
         private delegate bool TryParseDelegate<T>(ReadOnlySpan<byte> source, out T value, out int bytesConsumed, char standardFormat);
         private delegate bool TryFormatDelegate<T>(T value, Span<byte> destination, out int bytesWritten, StandardFormat format);
         
-        private class ParseFunctionality<T> : Functionality<T>
+        private class ParseFunctionality<T> : Functionality<ParseFunctionality<T>, T>
         {
             private readonly TryParseDelegate<T> _parser;
 
-            public ParseFunctionality(TryParseDelegate<T> parser)
+            private ParseFunctionality(TryParseDelegate<T> parser)
             {
                 _parser = parser;
             }
 
             public static bool Invoke(ReadOnlySpan<byte> source, out T value, out int bytesConsumed, char standardFormat)
             {
-                return Implementation<ParseFunctionality<T>>.Instance._parser(source, out value, out bytesConsumed, standardFormat);
+                return Instance._parser(source, out value, out bytesConsumed, standardFormat);
             }
 
             public static void Implement(TryParseDelegate<T> parser)
             {
-                Implementation<ParseFunctionality<T>>.Instance = new ParseFunctionality<T>(parser);
+                Instance = new ParseFunctionality<T>(parser);
             }
         }
         
-        private class FormatFunctionality<T> : Functionality<T>
+        private class FormatFunctionality<T> : Functionality<FormatFunctionality<T>, T>
         {
             private readonly TryFormatDelegate<T> _formatter;
 
-            public FormatFunctionality(TryFormatDelegate<T> formatter)
+            private FormatFunctionality(TryFormatDelegate<T> formatter)
             {
                 _formatter = formatter;
             }
 
             public static bool Invoke(T value, Span<byte> destination, out int bytesWritten, StandardFormat format)
             {
-                return Implementation<FormatFunctionality<T>>.Instance._formatter(value, destination, out bytesWritten, format);
+                return Instance._formatter(value, destination, out bytesWritten, format);
             }
 
             public static void Implement(TryFormatDelegate<T> formatter)
             {
-                Implementation<FormatFunctionality<T>>.Instance = new FormatFunctionality<T>(formatter);
+                Instance = new FormatFunctionality<T>(formatter);
             }
         }
     }
