@@ -14,6 +14,8 @@ namespace RedisCore.Internal
         private bool _connected = true;
 
         public bool Connected => _connected && _socket.Connected;
+        public bool Authenticated { get; private set; }
+
         public PipeReader Input => _pipe.Input;
         public PipeWriter Output => _pipe.Output;
 
@@ -34,5 +36,7 @@ namespace RedisCore.Internal
         }
 
         public void MarkAsDisconnected() => _connected = false;
+
+        public void MarkAsAuthenticated() => Authenticated = true;
     }
 }
