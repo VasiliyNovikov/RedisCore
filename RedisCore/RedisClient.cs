@@ -77,8 +77,12 @@ namespace RedisCore
             try
             {
                 var connection = await _connectionPool.Acquire();
-                if (_config.Password != null)
+                if (_config.Password != null && !connection.Authenticated)
+                {
                     await Execute(connection, new AuthCommand(_config.Password));
+                    connection.MarkAsAuthenticated();
+                }
+
                 return connection;
             }
             catch (SocketException e)
