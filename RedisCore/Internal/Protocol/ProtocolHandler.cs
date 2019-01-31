@@ -173,7 +173,7 @@ namespace RedisCore.Internal.Protocol
                         var totalBytesRead = 0;
                         while (totalBytesRead < strBuffer.Length)
                         {
-                            readResult = await reader.ReadAsync(cancellationToken);
+                            readResult = await reader.ReadAsync();
                             buffer = readResult.Buffer;
                             var bytesRead = (int)buffer.Length;
                             if (bytesRead == 0)
@@ -208,7 +208,7 @@ namespace RedisCore.Internal.Protocol
                             return RedisNull.Value;
                         var items = new List<RedisObject>(length);
                         for (var i = 0; i < length; ++i)
-                            items.Add(await Read(reader, cancellationToken));
+                            items.Add(await Read(reader));
                         return new RedisArray(items);
                     }
                     case '-':
