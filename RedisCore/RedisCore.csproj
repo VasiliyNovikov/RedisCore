@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
     <LangVersion>latest</LangVersion>
-    <Version>0.2.2</Version>
+    <Version>0.2.3</Version>
     <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
     <Authors>Vasiliy Novikov</Authors>
     <Description>Light .NET Core Redis client</Description>
