@@ -43,11 +43,12 @@ namespace RedisCore
     public interface IRedisBufferCommands
     {
         ValueTask<Memory<byte>?> Get(string key, IBufferPool<byte> bufferPool);
-        ValueTask<Memory<byte>?> LeftPop<T>(string key, IBufferPool<byte> bufferPool);
-        ValueTask<Memory<byte>?> RightPop<T>(string key, IBufferPool<byte> bufferPool);
-        ValueTask<Memory<byte>?> RightPopLeftPush<T>(string source, string destination, IBufferPool<byte> bufferPool);
-        ValueTask<Memory<byte>?> BlockingRightPopLeftPush<T>(string source, string destination, TimeSpan timeout, IBufferPool<byte> bufferPool);
-        ValueTask<Memory<byte>?> ListIndex<T>(string key, int index, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> LeftPop(string key, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> RightPop(string key, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> RightPopLeftPush(string source, string destination, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> BlockingRightPopLeftPush(string source, string destination, TimeSpan timeout, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> ListIndex(string key, int index, IBufferPool<byte> bufferPool);
+        ValueTask<Memory<byte>?> HashGet(string key, string field, IBufferPool<byte> bufferPool);
         
         ValueTask<Memory<byte>?> Eval(IBufferPool<byte> bufferPool, string script, params string[] keys);
         ValueTask<Memory<byte>?> Eval<T>(IBufferPool<byte> bufferPool, string script, T arg, params string[] keys);

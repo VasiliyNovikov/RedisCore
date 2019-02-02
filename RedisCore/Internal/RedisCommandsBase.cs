@@ -158,29 +158,34 @@ namespace RedisCore.Internal
             return await Execute(new GetCommand<byte[]>(key), bufferPool);
         }
 
-        public async ValueTask<Memory<byte>?> LeftPop<T>(string key, IBufferPool<byte> bufferPool)
+        public async ValueTask<Memory<byte>?> LeftPop(string key, IBufferPool<byte> bufferPool)
         {
             return await Execute(new LeftPopCommand<byte[]>(key), bufferPool);
         }
 
-        public async ValueTask<Memory<byte>?> RightPop<T>(string key, IBufferPool<byte> bufferPool)
+        public async ValueTask<Memory<byte>?> RightPop(string key, IBufferPool<byte> bufferPool)
         {
             return await Execute(new RightPopCommand<byte[]>(key), bufferPool);
         }
 
-        public async ValueTask<Memory<byte>?> RightPopLeftPush<T>(string source, string destination, IBufferPool<byte> bufferPool)
+        public async ValueTask<Memory<byte>?> RightPopLeftPush(string source, string destination, IBufferPool<byte> bufferPool)
         {
             return await Execute(new RightPopLeftPushCommand<byte[]>(source, destination), bufferPool);
         }
 
-        public async ValueTask<Memory<byte>?> BlockingRightPopLeftPush<T>(string source, string destination, TimeSpan timeout, IBufferPool<byte> bufferPool)
+        public async ValueTask<Memory<byte>?> BlockingRightPopLeftPush(string source, string destination, TimeSpan timeout, IBufferPool<byte> bufferPool)
         {
             return await Execute(new BlockingRightPopLeftPushCommand<byte[]>(source, destination, timeout), bufferPool);
         }
 
-        public async ValueTask<Memory<byte>?> ListIndex<T>(string key, int index, IBufferPool<byte> bufferPool)
+        public async ValueTask<Memory<byte>?> ListIndex(string key, int index, IBufferPool<byte> bufferPool)
         {
             return await Execute(new ListIndexCommand<byte[]>(key, index), bufferPool);
+        }
+
+        public async ValueTask<Memory<byte>?> HashGet(string key, string field, IBufferPool<byte> bufferPool)
+        {
+            return await Execute(new HashGetCommand<byte[]>(key, field), bufferPool);
         }
 
         public async ValueTask<Memory<byte>?> Eval(IBufferPool<byte> bufferPool, string script, params string[] keys)
