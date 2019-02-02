@@ -11,6 +11,7 @@ namespace RedisCore.Internal.Commands
         public static readonly RedisString Set = new RedisByteString("SET");
         public static readonly RedisString Del = new RedisByteString("DEL");
         public static readonly RedisString PExpire = new RedisByteString("PEXPIRE");
+        public static readonly RedisString Exists = new RedisByteString("EXISTS");
         
         public static readonly RedisString Multi = new RedisByteString("MULTI");
         public static readonly RedisString Exec = new RedisByteString("EXEC");

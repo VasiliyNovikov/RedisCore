@@ -39,6 +39,11 @@ namespace RedisCore.Internal
             return await Execute(new ExpireCommand(key, time));
         }
 
+        public async ValueTask<bool> Exists(string key)
+        {
+            return await Execute(new ExistsCommand(key));
+        }
+
         public async ValueTask<int> LeftPush<T>(string key, T value)
         {
             return await Execute(new LeftPushCommand<T>(key, value));

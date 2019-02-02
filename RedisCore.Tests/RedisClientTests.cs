@@ -31,7 +31,7 @@ namespace RedisCore.Tests
         
         [TestMethod]
         [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
-        public async Task RedisClient_Get_Set_Delete_Test(RedisClientConfig config)
+        public async Task RedisClient_Get_Set_Delete_Exists_Test(RedisClientConfig config)
         {
             using (var client = new RedisClient(config))
             {
@@ -40,13 +40,16 @@ namespace RedisCore.Tests
                     var testKey = UniqueString();
                     var testValue = UniqueString();
 
+                    Assert.IsFalse(await client.Exists(testKey));
                     Assert.IsNull(await client.GetOrDefault<string>(testKey));
 
                     await client.Set(testKey, testValue);
+                    Assert.IsTrue(await client.Exists(testKey));
                     Assert.AreEqual(testValue, await client.Get<string>(testKey));
 
                     await client.Delete(testKey);
                     Assert.IsNull(await client.GetOrDefault<string>(testKey));
+                    Assert.IsFalse(await client.Exists(testKey));
                 }
             }
         }

@@ -12,6 +12,7 @@ namespace RedisCore
         ValueTask<bool> Set<T>(string key, T value, TimeSpan? expiration = null, OptimisticConcurrency concurrency = OptimisticConcurrency.None);
         ValueTask<bool> Delete(string key);
         ValueTask<bool> Expire(string key, TimeSpan time);
+        ValueTask<bool> Exists(string key);
         
         ValueTask<int> LeftPush<T>(string key, T value);
         ValueTask<int> RightPush<T>(string key, T value);
