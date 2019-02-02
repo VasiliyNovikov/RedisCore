@@ -536,8 +536,8 @@ return {data1, data2}";
             using (var client = new RedisClient(config))
             {
                 const string testValue = "123";
-                Assert.AreEqual(testValue, (await client.Eval<Optional<string>>($"return '{testValue}'")).Value);
-                Assert.IsFalse((await client.Eval<Optional<string>>("return false")).HasValue);
+                Assert.AreEqual(testValue, await client.Eval<Optional<string>>($"return '{testValue}'"));
+                Assert.AreEqual(Optional<string>.Unspecified, await client.Eval<Optional<string>>("return false"));
             }
         }
         
