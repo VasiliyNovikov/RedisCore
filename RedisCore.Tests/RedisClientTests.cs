@@ -153,7 +153,7 @@ namespace RedisCore.Tests
                 Assert.IsTrue(await client.Expire(testKey, expireTime));
                 Assert.AreEqual(testValue, await client.Get<string>(testKey));
 
-                await Task.Delay(expireTime * 1.5);
+                await Task.Delay(expireTime.Multiply(1.5));
 
                 Assert.IsNull(await client.GetOrDefault<string>(testKey));
             }
@@ -172,7 +172,7 @@ namespace RedisCore.Tests
                 Assert.IsTrue(await client.Set(testKey, testValue, expireTime));
                 Assert.AreEqual(testValue, await client.Get<string>(testKey));
 
-                await Task.Delay(expireTime * 1.5);
+                await Task.Delay(expireTime.Multiply(1.5));
 
                 Assert.IsNull(await client.GetOrDefault<string>(testKey));
             }

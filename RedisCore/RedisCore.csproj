@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp2.2;netstandard2.0</TargetFrameworks>
+    <DefineConstants Condition="'$(TargetFramework)' == 'netstandard2.0'">NETSTANDARD</DefineConstants>
     <LangVersion>latest</LangVersion>
     <Version>0.2.4</Version>
     <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
@@ -13,8 +14,10 @@
     <RepositoryType>Git</RepositoryType>
     <PackageTags>redis</PackageTags>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Pipelines" Version="4.5.*" />
+    <PackageReference Include="System.Memory" Version="[4.5.1,)" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
 </Project>

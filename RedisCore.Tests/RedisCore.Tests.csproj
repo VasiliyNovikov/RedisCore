@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFrameworks>netcoreapp2.2;netcoreapp2.1;net471</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp2.2;netcoreapp2.1</TargetFrameworks>
+    <DefineConstants Condition="'$(TargetFramework)' == 'net471'">NETSTANDARD</DefineConstants>
     <IsPackable>false</IsPackable>
     <LangVersion>latest</LangVersion>
     <TieredCompilation>true</TieredCompilation>
