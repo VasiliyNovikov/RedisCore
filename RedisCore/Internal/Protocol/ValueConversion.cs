@@ -212,7 +212,8 @@ namespace RedisCore.Internal.Protocol
                     : new Converter<TValue, Optional<T>>(value => convert(value));
                 if (typeof(T).IsValueType)
                 {
-                    var implementNullableMethod = typeof(Converter<TValue, T>).GetMethod(nameof(ImplementNullable), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(typeof(T));
+                    var implementNullableMethod = typeof(Converter<TValue, T>).GetMethod(nameof(ImplementNullable), BindingFlags.Static | BindingFlags.NonPublic)
+                                                                              .MakeGenericMethod(typeof(T));
                     implementNullableMethod.Invoke(null, new object[] {convert});
                 }
             }
@@ -291,7 +292,11 @@ namespace RedisCore.Internal.Protocol
             private static HashSet<TItem> CreateSet<TItem>(RedisArray value)
             {
                 var items = value.Items;
+#if NETSTANDARD
+                var result = new HashSet<TItem>();
+#else
                 var result = new HashSet<TItem>(items.Count);
+#endif
                 foreach (var item in items)
                     result.Add(item.To<TItem>());
                 return result;

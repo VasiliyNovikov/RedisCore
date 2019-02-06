@@ -24,7 +24,6 @@ namespace RedisCore.Utils
 
             public T[] Rent(int minimumLength)
             {
-                MemoryPool<byte>.Shared.Rent(1);
                 if (_buffers == null)
                     _buffers = ArrayPool<T[]>.Shared.Rent(1);
                 else if (_length == _buffers.Length)
