@@ -16,6 +16,8 @@ namespace RedisCore.Utils
         public Memory<T> Memory => new Memory<T>(_buffer, 0, Length);
 
         public Span<T> Span => new Span<T>(_buffer, 0, Length);
+        
+        public ArraySegment<T> Segment => new ArraySegment<T>(_buffer, 0, Length);
 
         public RentedBuffer(int length)
         {
@@ -23,15 +25,11 @@ namespace RedisCore.Utils
             _buffer = ArrayPool<T>.Shared.Rent(length);
         }
 
-        public static implicit operator Memory<T>(in RentedBuffer<T> buffer)
-        {
-            return buffer.Memory;
-        }
+        public static implicit operator Memory<T>(in RentedBuffer<T> buffer) => buffer.Memory;
 
-        public static implicit operator Span<T>(in RentedBuffer<T> buffer)
-        {
-            return buffer.Span;
-        }
+        public static implicit operator Span<T>(in RentedBuffer<T> buffer) => buffer.Span;
+
+        public static explicit operator ArraySegment<T>(in RentedBuffer<T> buffer) => buffer.Segment;
 
         public void Dispose()
         {

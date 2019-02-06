@@ -130,7 +130,7 @@ namespace RedisCore
                         throw;
                     
                     await Task.Delay(retryDelay);
-                    retryDelay *= 2;
+                    retryDelay = retryDelay.Multiply(2);
                     if (retryDelay > _config.LoadingRetryDelayMax)
                         retryDelay = _config.LoadingRetryDelayMax;
                 }
