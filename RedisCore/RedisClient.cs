@@ -97,7 +97,12 @@ namespace RedisCore
             _connectionPool.Release(connection);
         }
 
-        private async ValueTask<RedisObject> Execute(Connection connection, RedisArray commandData)
+        private IBufferPool<byte> CreateBufferPool()
+        {
+            return _config.UseBufferPool ? BufferPool.Create<byte>() : BufferPool.Empty<byte>();
+        }
+
+        private async ValueTask<RedisObject> Execute(Connection connection, RedisArray commandData, IBufferPool<byte> bufferPool)
         {
             var retryDelay = _config.LoadingRetryDelayMin;
             var retryTimeoutTime = MonotonicTime.Now + _config.LoadingRetryTimeout;
@@ -110,7 +115,7 @@ namespace RedisCore
                     {
                         ProtocolHandler.Write(connection.Output, commandData);
                         await connection.Output.FlushAsync();
-                        result = await ProtocolHandler.Read(connection.Input);
+                        result = await ProtocolHandler.Read(connection.Input, bufferPool);
                     }
                     catch (Exception e)
                     {
@@ -139,8 +144,18 @@ namespace RedisCore
 
         private async ValueTask<T> Execute<T>(Connection connection, Command<T> command)
         {
-            var result = await Execute(connection, command.Data);
-            return command.GetResult(result);
+            using (var bufferPool = CreateBufferPool())
+            {
+                var result = await Execute(connection, command.Data, bufferPool);
+                return command.GetResult(result);
+            }
+        }
+        
+        private async ValueTask<Memory<byte>?> Execute<TCommand>(Connection connection, TCommand command, IBufferPool<byte> bufferPool)
+            where TCommand : Command<Optional<byte[]>>
+        {
+            var result = await Execute(connection, command.Data, bufferPool);
+            return result.To(bufferPool);
         }
 
         private protected override async ValueTask<T> Execute<T>(Command<T> command)
@@ -150,6 +165,20 @@ namespace RedisCore
             try
             {
                 return await Execute(connection, command);
+            }
+            finally 
+            {
+                ReleaseConnection(connection);
+            }
+        }
+
+        private protected override async ValueTask<Memory<byte>?> Execute<TCommand>(TCommand command, IBufferPool<byte> bufferPool) 
+        {
+            CheckDisposed();
+            var connection = await AcquireConnection();
+            try
+            {
+                return await Execute(connection, command, bufferPool);
             }
             finally 
             {
@@ -169,6 +198,7 @@ namespace RedisCore
         private class Transaction : RedisCommandsBase, IRedisTransaction
         {
             private readonly RedisClient _client;
+            private readonly IBufferPool<byte> _bufferPool;
             private bool _disposed;
             private readonly List<string> _watchedKeys = new List<string>();
             private readonly List<QueuedCommand> _queuedCommands = new List<QueuedCommand>();
@@ -176,6 +206,7 @@ namespace RedisCore
             public Transaction(RedisClient client)
             {
                 _client = client;
+                _bufferPool = client.CreateBufferPool();
             }
 
             private void CheckDisposed()
@@ -204,7 +235,7 @@ namespace RedisCore
                     try
                     {
                         foreach (var command in _queuedCommands)
-                            await _client.Execute(connection, command.Data);
+                            await _client.Execute(connection, command.Data, _bufferPool);
                         var result = await _client.Execute(connection, new ExecCommand());
                         if (result == null)
                         {
@@ -243,6 +274,7 @@ namespace RedisCore
                 _disposed = true;
                 foreach (var command in _queuedCommands)
                     command.SetCancelled();
+                _bufferPool.Dispose();
             }
 
             private async ValueTask<T> Queue<T>(QueuedCommand<T> command)
@@ -254,7 +286,13 @@ namespace RedisCore
             private protected override async ValueTask<T> Execute<T>(Command<T> command)
             {
                 CheckDisposed();
-                return await Queue(new QueuedCommand<T>(command));
+                return await Queue(new QueuedValueCommand<T>(command));
+            }
+
+            private protected override async ValueTask<Memory<byte>?> Execute<TCommand>(TCommand command, IBufferPool<byte> bufferPool)
+            {
+                CheckDisposed();
+                return await Queue(new QueuedBufferCommand<TCommand>(command, bufferPool));
             }
 
             private abstract class QueuedCommand
@@ -264,27 +302,25 @@ namespace RedisCore
                 public abstract void SetCancelled();
             }
             
-            private class QueuedCommand<T> : QueuedCommand
+            private abstract class QueuedCommand<T> : QueuedCommand
             {
-                private readonly Command<T> _command;
                 private readonly TaskCompletionSource<T> _taskSource;
 
                 public Task<T> Task => _taskSource.Task;
 
-                public override RedisArray Data => _command.Data;
-
-                public QueuedCommand(Command<T> command) 
+                protected QueuedCommand() 
                 {
-                    _command = command;
                     _taskSource = new TaskCompletionSource<T>();
                 }
 
+                protected abstract T ExtractResult(RedisObject protocolResult);
+                
                 public override void SetResult(RedisObject protocolResult)
                 {
                     try
                     {
                         CheckError(protocolResult);
-                        var result = _command.GetResult(protocolResult);
+                        var result = ExtractResult(protocolResult);
                         _taskSource.TrySetResult(result);
                     }
                     catch (Exception e)
@@ -298,10 +334,41 @@ namespace RedisCore
                     _taskSource.TrySetCanceled();
                 }
             }
+
+            private class QueuedValueCommand<T> : QueuedCommand<T>
+            {
+                private readonly Command<T> _command;
+
+                public override RedisArray Data => _command.Data;
+
+                public QueuedValueCommand(Command<T> command) 
+                {
+                    _command = command;
+                }
+
+                protected override T ExtractResult(RedisObject protocolResult) => _command.GetResult(protocolResult);
+            }
+
+            private class QueuedBufferCommand<TCommand> : QueuedCommand<Memory<byte>?>
+                where TCommand : Command<Optional<byte[]>>
+            {
+                private readonly TCommand _command;
+                private readonly IBufferPool<byte> _bufferPool;
+
+                public override RedisArray Data => _command.Data;
+
+                public QueuedBufferCommand(TCommand command, IBufferPool<byte> bufferPool) 
+                {
+                    _command = command;
+                    _bufferPool = bufferPool;
+                }
+
+                protected override Memory<byte>? ExtractResult(RedisObject protocolResult) => protocolResult.To(_bufferPool);
+            }
         }
-        
+
         #endregion
-        
+
         public async ValueTask<ISubscription> Subscribe(string channel)
         {
             CheckDisposed();
@@ -383,34 +450,67 @@ namespace RedisCore
                 _unsubscribed = true;
             }
 
-            private async ValueTask<T> GetMessage<T>(string name, CancellationToken cancellationToken = default)
+            private async ValueTask<T> GetMessage<T, TExtractResult>(string name, TExtractResult extractResult, CancellationToken cancellationToken = default)
+                where TExtractResult : struct, IExtractResult<T>
             {
                 CheckDisposed();
-                while (true)
+                using (var bufferPool = _client.CreateBufferPool())
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    RedisObject result;
-                    try
+                    while (true)
                     {
-                        result = await ProtocolHandler.Read(_connection.Input, cancellationToken);
-                    }
-                    catch (Exception e)
-                    {
-                        if (WrapException(_connection, e, out var redisException))
-                            throw redisException;
-                        throw;
-                    }
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                    var resultArray = ((RedisArray) CheckError(result)).Items;
-                    if (((RedisValueObject) resultArray[0]).To<string>() == name)
-                        return ((RedisValueObject) resultArray[2]).To<T>();
+                        RedisObject result;
+                        try
+                        {
+                            result = await ProtocolHandler.Read(_connection.Input, bufferPool, cancellationToken);
+                        }
+                        catch (Exception e)
+                        {
+                            if (WrapException(_connection, e, out var redisException))
+                                throw redisException;
+                            throw;
+                        }
+
+                        var resultArray = ((RedisArray) CheckError(result)).Items;
+                        if (((RedisValueObject) resultArray[0]).To<string>() == name)
+                            return extractResult.GetResult((RedisValueObject) resultArray[2]);
+                    }
                 }
+            }
+
+            private async ValueTask<T> GetMessage<T>(string name, CancellationToken cancellationToken = default)
+            {
+                return await GetMessage<T, ExtractValueResult<T>>(name, new ExtractValueResult<T>(), cancellationToken);
             }
 
             public async ValueTask<T> GetMessage<T>(CancellationToken cancellationToken = default)
             {
                 return await GetMessage<T>("message", cancellationToken);
+            }
+
+            public async ValueTask<Memory<byte>> GetMessage(IBufferPool<byte> bufferPool, CancellationToken cancellationToken = default)
+            {
+                return await GetMessage<Memory<byte>, ExtractBufferResult>("message", new ExtractBufferResult(bufferPool), cancellationToken);
+            }
+            
+            private interface IExtractResult<out T>
+            {
+                T GetResult(RedisValueObject value);
+            }
+            
+            private struct ExtractValueResult<T> : IExtractResult<T>
+            {
+                public T GetResult(RedisValueObject value) => value.To<T>();
+            }
+            
+            private struct ExtractBufferResult : IExtractResult<Memory<byte>>
+            {
+                private readonly IBufferPool<byte> _bufferPool;
+                public ExtractBufferResult(IBufferPool<byte> bufferPool) => _bufferPool = bufferPool;
+                // ReSharper disable PossibleInvalidOperationException
+                public Memory<byte> GetResult(RedisValueObject value) => value.To(_bufferPool).Value;
+                // ReSharper restore PossibleInvalidOperationException
             }
         }
 

@@ -61,5 +61,12 @@ namespace RedisCore.Tests
         protected static IEnumerable<object[]> Test_Endpoints_Data() => TestConfigs().Select(cfg => new object[] {cfg});
 
         protected static string UniqueString() => Guid.NewGuid().ToString();
+
+        protected static byte[] UniqueBinary(int length)
+        {
+            var result = new byte[length];
+            new Random().NextBytes(result);
+            return result;
+        }
     }
 }

@@ -3,7 +3,7 @@ using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Internal.Commands
 {
-    internal abstract class Command<T>
+    internal abstract class Command
     {
         public RedisArray Data { get; }
 
@@ -13,7 +13,15 @@ namespace RedisCore.Internal.Commands
                 ? new RedisArray(name)
                 : new RedisArray(args.Prepend(name));
         }
+    }
+    
+    internal abstract class Command<T> : Command
+    {
+        protected Command(RedisString name, params RedisObject[] args)
+            : base(name, args)
+        {
+        }
 
-        public abstract T GetResult(RedisObject resultObject);
+        public virtual T GetResult(RedisObject resultObject) => resultObject.To<T>();
     }
 }

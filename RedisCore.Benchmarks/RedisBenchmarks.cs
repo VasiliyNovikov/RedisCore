@@ -13,10 +13,14 @@ namespace RedisCore.Benchmarks
         protected RedisClient TcpClient { get; }
 
         protected RedisClient TcpClientStreamed { get; }
+        
+        protected RedisClient TcpClientNoBufferPool { get; }
 
         protected RedisClient UnixClient { get; }
 
         protected RedisClient UnixClientStreamed { get; }
+        
+        protected RedisClient UnixClientNoBufferPool { get; }
 
         protected RedisBenchmarks()
         {
@@ -29,6 +33,8 @@ namespace RedisCore.Benchmarks
             UnixClient = new RedisClient(unixEndPoint);
             TcpClientStreamed = new RedisClient(new RedisClientConfig(tcpEndPoint){ForceUseNetworkStream = true});
             UnixClientStreamed = new RedisClient(new RedisClientConfig(unixEndPoint){ForceUseNetworkStream = true});
+            TcpClientNoBufferPool = new RedisClient(new RedisClientConfig(tcpEndPoint){UseBufferPool = false});
+            UnixClientNoBufferPool = new RedisClient(new RedisClientConfig(unixEndPoint){UseBufferPool = false});
         }
     }
 }
