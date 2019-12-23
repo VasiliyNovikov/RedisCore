@@ -466,6 +466,7 @@ namespace RedisCore
                 CheckDisposed();
                 await SendCommand(new UnsubscribeCommand());
                 await GetMessage<int>("unsubscribe");
+                _unsubscribed = true;
             }
 
             private async ValueTask<T> GetMessage<T, TExtractResult>(string name, TExtractResult extractResult, CancellationToken cancellationToken = default)
