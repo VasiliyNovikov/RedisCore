@@ -1,0 +1,65 @@
+parameters:
+  name: ''
+  vmImage: ''
+  localRedis: false
+  publishArtifact: false
+
+jobs:
+- job: ${{ parameters.name }}
+  pool:
+    vmImage: ${{ parameters.vmImage }}
+  steps:
+  - script: env
+    displayName: Get Agent Info
+
+  - ${{ if eq(parameters.localRedis, 'true') }}:
+    - bash: . 'RedisCore.Tests/install_redis_debian.sh'
+      displayName: Install Redis
+
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core SDK 2.2.x'
+    inputs:
+      version: 2.2.x
+
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: restore
+      projects: '**/*.csproj'
+
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: build
+      projects: '**/*.csproj'
+      arguments: '--configuration $(configuration)'
+
+  - task: DotNetCoreCLI@2
+    displayName: Test
+    inputs:
+      command: test
+      projects: '**/*Tests/*.csproj'
+      arguments: '--configuration $(configuration)'
+    env:
+      AZURE_REDIS_PWD: $(azure_redis_password)
+      LOCAL_REDIS: ${{ parameters.localRedis }}
+
+  - ${{ if eq(parameters.publishArtifact, 'true') }}:
+
+    - task: DotNetCoreCLI@2
+      displayName: Pack
+      inputs:
+        ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+          command: pack
+          packagesToPack: '**/RedisCore.csproj'
+          nobuild: true
+        ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+          command: custom
+          custom: pack
+          arguments: $(Build.SourcesDirectory)/RedisCore/RedisCore.csproj --output $(Build.ArtifactStagingDirectory) --no-build --version-suffix -beta-$(Build.BuildNumber)
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: drop
