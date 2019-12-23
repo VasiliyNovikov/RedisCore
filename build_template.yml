@@ -16,10 +16,10 @@ jobs:
     - bash: . 'RedisCore.Tests/install_redis_debian.sh'
       displayName: Install Redis
 
-  - task: DotNetCoreInstaller@0
-    displayName: 'Use .NET Core SDK 2.2.103'
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core SDK 2.2.x'
     inputs:
-      version: 2.2.103
+      version: 2.2.x
 
   - task: DotNetCoreCLI@2
     displayName: Restore

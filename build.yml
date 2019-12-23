@@ -16,9 +16,9 @@ jobs:
 - template: build_template.yml
   parameters:
     name: Windows
-    vmImage: vs2017-win2016
+    vmImage: windows-2019
 
 - template: build_template.yml
   parameters:
     name: Mac
-    vmImage: macOS-10.13
+    vmImage: macOS-latest
