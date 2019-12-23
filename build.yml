@@ -1,3 +1,7 @@
+variables:	
+  configuration: release	
+  platform: any cpu
+
 trigger:
 - master
 
@@ -66,10 +70,11 @@ steps:
       command: pack
       packagesToPack: '**/RedisCore.csproj'
       nobuild: true
+      arguments: '--configuration $(configuration)'
     ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
       command: custom
       custom: pack
-      arguments: $(Build.SourcesDirectory)/RedisCore/RedisCore.csproj --output $(Build.ArtifactStagingDirectory) --no-build --version-suffix -beta-$(Build.BuildNumber)
+      arguments: $(Build.SourcesDirectory)/RedisCore/RedisCore.csproj --configuration $(configuration) --output $(Build.ArtifactStagingDirectory) --no-build --version-suffix -beta-$(Build.BuildNumber)
   condition: "and(succeeded(), eq(variables['publishArtifact'], 'true'))"
 
 - task: PublishBuildArtifacts@1
