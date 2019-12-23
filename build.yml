@@ -26,14 +26,14 @@ pool:
 variables:
   configuration: release
   platform: any cpu
-  localRedis: $(localRedis)
-  publishArtifact: $(publishArtifact)
+  localRedis2: $(localRedis)
+  publishArtifact2: $(publishArtifact)
 
 steps:
   - script: env
     displayName: Get Agent Info
 
-  - ${{ if eq(variables.localRedis, 'true') }}:
+  - ${{ if eq(variables.localRedis2, 'true') }}:
     - bash: . 'RedisCore.Tests/install_redis_debian.sh'
       displayName: Install Redis
 
@@ -63,9 +63,9 @@ steps:
       arguments: '--configuration $(configuration)'
     env:
       AZURE_REDIS_PWD: $(azure_redis_password)
-      LOCAL_REDIS: $(localRedis)
+      LOCAL_REDIS: $(localRedis2)
 
-  - ${{ if eq(variables.publishArtifact, 'true') }}:
+  - ${{ if eq(variables.publishArtifact2, 'true') }}:
 
     - task: DotNetCoreCLI@2
       displayName: Pack
