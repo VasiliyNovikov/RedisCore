@@ -63,7 +63,7 @@ steps:
       AZURE_REDIS_PWD: $(azure_redis_password)
       LOCAL_REDIS: $(localRedis)
 
-  - ${{ if eq(variables['publishArtifact'], 'true') }}:
+  - ${{ if eq(variables.publishArtifact, 'true') }}:
 
     - task: DotNetCoreCLI@2
       displayName: Pack
