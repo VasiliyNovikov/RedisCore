@@ -59,32 +59,33 @@ namespace RedisCore.Tests
             if (!HasLocalRedis) // Workaround. Need to figure out proper way to execute it conditionally
                 return;
 
-            await using var client = new RedisClient(config);
-            for (var i = 0; i < 2; i++)
+            await using (var client = new RedisClient(config))
             {
-                var testChannel = UniqueString();
-                await using var subscription = await client.Subscribe(testChannel);
-                await StopRedis();
-                try
+                for (var i = 0; i < 2; i++)
                 {
-                    for (var j = 0; j < 2; ++j)
+                    var testChannel = UniqueString();
+                    await using var subscription = await client.Subscribe(testChannel);
+                    await StopRedis();
+                    try
                     {
-                        try
+                        for (var j = 0; j < 2; ++j)
                         {
-                            await subscription.GetMessage<string>();
-                            Assert.Fail($"{typeof(RedisConnectionException)} expected");
-                        }
-                        catch (RedisConnectionException)
-                        {
+                            try
+                            {
+                                await subscription.GetMessage<string>();
+                                Assert.Fail($"{typeof(RedisConnectionException)} expected");
+                            }
+                            catch (RedisConnectionException)
+                            {
+                            }
                         }
                     }
-                }
-                finally
-                {
-                    await StartRedis();
+                    finally
+                    {
+                        await StartRedis();
+                    }
                 }
             }
         }
-
     }
 }

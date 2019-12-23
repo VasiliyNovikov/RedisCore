@@ -298,22 +298,24 @@ namespace RedisCore.Tests
         {
             var rnd = new Random();
             using var bufferPool = BufferPool.Create<byte>();
-            await using var client = new RedisClient(config);
-            for (var i = 0; i < 4; ++i)
+            await using (var client = new RedisClient(config))
             {
-                var testChannel = UniqueString();
-                await using var subscription = await client.Subscribe(testChannel);
-                for (var j = 0; j < 8; ++j)
+                for (var i = 0; i < 4; ++i)
                 {
-                    var testMsg = bufferPool.RentMemory(16384);
-                    rnd.NextBytes(testMsg.Span);
+                    var testChannel = UniqueString();
+                    await using var subscription = await client.Subscribe(testChannel);
+                    for (var j = 0; j < 8; ++j)
+                    {
+                        var testMsg = bufferPool.RentMemory(16384);
+                        rnd.NextBytes(testMsg.Span);
 
-                    await client.Publish(testChannel, testMsg);
-                    using (var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.5)))
+                        await client.Publish(testChannel, testMsg);
+                        using var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.5));
                         CollectionAssert.AreEqual(testMsg.ToArray(), (await subscription.GetMessage(bufferPool, cancellationSource.Token)).ToArray());
-                }
+                    }
 
-                await subscription.Unsubscribe();
+                    await subscription.Unsubscribe();
+                }
             }
         }
 
@@ -321,28 +323,30 @@ namespace RedisCore.Tests
         [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
         public async Task RedisClient_PubSub_Batch_Send_Receive_Test(RedisClientConfig config)
         {
-            await using var client = new RedisClient(config);
-            for (var i = 0; i < 4; ++i)
+            await using (var client = new RedisClient(config))
             {
-                var testChannel = UniqueString();
-                var testMsgBase = UniqueString();
-                var messages = Enumerable.Range(0, 8).Select(j => testMsgBase + j).ToList();
-                await using var subscription = await client.Subscribe(testChannel);
-                foreach (var testMsg in messages)
+                for (var i = 0; i < 4; ++i)
                 {
-                    await client.Publish(testChannel, testMsg);
-                }
-
-                using (var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(1)))
-                {
+                    var testChannel = UniqueString();
+                    var testMsgBase = UniqueString();
+                    var messages = Enumerable.Range(0, 8).Select(j => testMsgBase + j).ToList();
+                    await using var subscription = await client.Subscribe(testChannel);
                     foreach (var testMsg in messages)
                     {
-                        var actualMsg = await subscription.GetMessage<string>(cancellationSource.Token);
-                        Assert.AreEqual(testMsg, actualMsg);
+                        await client.Publish(testChannel, testMsg);
                     }
-                }
 
-                await subscription.Unsubscribe();
+                    using (var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(1)))
+                    {
+                        foreach (var testMsg in messages)
+                        {
+                            var actualMsg = await subscription.GetMessage<string>(cancellationSource.Token);
+                            Assert.AreEqual(testMsg, actualMsg);
+                        }
+                    }
+
+                    await subscription.Unsubscribe();
+                }
             }
         }
 
@@ -350,15 +354,15 @@ namespace RedisCore.Tests
         [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
         public async Task RedisClient_PubSub_Receive_Cancel_Send_Receive_Test(RedisClientConfig config)
         {
-            await using var client = new RedisClient(config);
-            for (var i = 0; i < 3; ++i)
+            await using (var client = new RedisClient(config))
             {
-                var testChannel = UniqueString();
-                await using var subscription = await client.Subscribe(testChannel);
-                for (var j = 0; j < 2; ++j)
+                for (var i = 0; i < 3; ++i)
                 {
-                    using (var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.2)))
+                    var testChannel = UniqueString();
+                    await using var subscription = await client.Subscribe(testChannel);
+                    for (var j = 0; j < 2; ++j)
                     {
+                        using var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.2));
                         try
                         {
                             await subscription.GetMessage<string>(cancellationSource.Token);
@@ -368,17 +372,17 @@ namespace RedisCore.Tests
                         {
                         }
                     }
-                }
 
-                var testMsg = UniqueString();
-                await client.Publish(testChannel, testMsg);
-                using (var cancellationSource2 = new CancellationTokenSource(TimeSpan.FromSeconds(0.5)))
-                {
-                    var actualMsg = await subscription.GetMessage<string>(cancellationSource2.Token);
-                    Assert.AreEqual(testMsg, actualMsg);
-                }
+                    var testMsg = UniqueString();
+                    await client.Publish(testChannel, testMsg);
+                    using (var cancellationSource2 = new CancellationTokenSource(TimeSpan.FromSeconds(0.5)))
+                    {
+                        var actualMsg = await subscription.GetMessage<string>(cancellationSource2.Token);
+                        Assert.AreEqual(testMsg, actualMsg);
+                    }
 
-                await subscription.Unsubscribe();
+                    await subscription.Unsubscribe();
+                }
             }
         }
 
@@ -386,17 +390,19 @@ namespace RedisCore.Tests
         [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
         public async Task RedisClient_PubSub_Subscribe_Publish_Unsubscribe_Ping_Test(RedisClientConfig config)
         {
-            await using var client = new RedisClient(config);
-            for (var i = 0; i < 3; ++i)
+            await using (var client = new RedisClient(config))
             {
-                var testChannel = UniqueString();
-                await using(var subscription = await client.Subscribe(testChannel))
+                for (var i = 0; i < 3; ++i)
                 {
-                    await client.Publish(testChannel, "Whatever...");
-                    await subscription.Unsubscribe();
-                }
+                    var testChannel = UniqueString();
+                    await using (var subscription = await client.Subscribe(testChannel))
+                    {
+                        await client.Publish(testChannel, "Whatever...");
+                        await subscription.Unsubscribe();
+                    }
 
-                await client.Ping();
+                    await client.Ping();
+                }
             }
         }
         
