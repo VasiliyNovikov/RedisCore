@@ -1,5 +1,0 @@
-parameters:
-  localRedis: false
-  publishArtifact: false
-
-steps:
