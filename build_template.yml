@@ -1,6 +1,4 @@
 parameters:
-  name: ''
-  vmImage: ''
   localRedis: false
   publishArtifact: false
 
@@ -8,9 +6,9 @@ steps:
 - script: env
   displayName: Get Agent Info
 
-- ${{ if eq(parameters.localRedis, 'true') }}:
-  - bash: . 'RedisCore.Tests/install_redis_debian.sh'
-    displayName: Install Redis
+- bash: . 'RedisCore.Tests/install_redis_debian.sh'
+  displayName: Install Redis
+  condition: eq(parameters.localRedis, 'true')
 
 - task: UseDotNet@2
   displayName: 'Use .NET Core SDK 2.2.x'
