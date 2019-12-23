@@ -8,7 +8,7 @@ steps:
 
 - bash: . 'RedisCore.Tests/install_redis_debian.sh'
   displayName: Install Redis
-  condition: eq(parameters.localRedis, 'true')
+  condition: eq('${{ parameters.localRedis }}', 'true')
 
 - task: UseDotNet@2
   displayName: 'Use .NET Core SDK 2.2.x'
