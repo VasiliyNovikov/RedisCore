@@ -10,19 +10,23 @@ strategy:
     Ubuntu_16:
       imageName: ubuntu-16.04
       localRedis: false
-      publishArtifact: true
+      variables:
+        publishArtifact: true
     Ubuntu_18:
       imageName: ubuntu-18.04
       localRedis: true
-      publishArtifact: false
+      variables:
+        publishArtifact: false
     Windows:
       imageName: windows-latest
       localRedis: false
-      publishArtifact: false
+      variables:
+        publishArtifact: false
     OSX:
       imageName: macOS-latest
       localRedis: false
-      publishArtifact: false
+      variables:
+        publishArtifact: false
 
 pool:
   vmImage: $(imageName)
