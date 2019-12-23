@@ -64,25 +64,27 @@ namespace RedisCore.Tests
                 for (var i = 0; i < 2; i++)
                 {
                     var testChannel = UniqueString();
-                    await using var subscription = await client.Subscribe(testChannel);
-                    await StopRedis();
-                    try
+                    await using (var subscription = await client.Subscribe(testChannel))
                     {
-                        for (var j = 0; j < 2; ++j)
+                        await StopRedis();
+                        try
                         {
-                            try
+                            for (var j = 0; j < 2; ++j)
                             {
-                                await subscription.GetMessage<string>();
-                                Assert.Fail($"{typeof(RedisConnectionException)} expected");
-                            }
-                            catch (RedisConnectionException)
-                            {
+                                try
+                                {
+                                    await subscription.GetMessage<string>();
+                                    Assert.Fail($"{typeof(RedisConnectionException)} expected");
+                                }
+                                catch (RedisConnectionException)
+                                {
+                                }
                             }
                         }
-                    }
-                    finally
-                    {
-                        await StartRedis();
+                        finally
+                        {
+                            await StartRedis();
+                        }
                     }
                 }
             }

@@ -429,7 +429,17 @@ namespace RedisCore
                     return;
 
                 if (!_unsubscribed)
-                    await Unsubscribe();
+                    try
+                    {
+                        await Unsubscribe();
+                    }
+                    catch (RedisConnectionException)
+                    {
+                        _connection.Dispose();
+                        _disposed = true;
+                        return;
+                    }
+
                 _disposed = true;
                 _client.ReleaseConnection(_connection);
             }
