@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;netcoreapp2.2;netcoreapp2.1;net48</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp3.1;netcoreapp2.2;netcoreapp2.1</TargetFrameworks>
-    <DefineConstants Condition="'$(TargetFramework)' == 'net48'">NETSTANDARD</DefineConstants>
+    <DefineConstants Condition="'$(TargetFramework)' == 'net48'">NETSTANDARD20</DefineConstants>
     <IsPackable>false</IsPackable>
     <LangVersion>latest</LangVersion>
     <TieredCompilation>true</TieredCompilation>

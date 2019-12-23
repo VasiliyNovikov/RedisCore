@@ -1,4 +1,4 @@
-#if NETSTANDARD
+#if NETSTANDARD20
 using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;

@@ -26,18 +26,52 @@ namespace RedisCore.Tests
             if (!HasLocalRedis) // Workaround. Need to figure out proper way to execute it conditionally
                 return;
 
-            using (var client = new RedisClient(config))
-            {
-                await client.Ping();
+            using var client = new RedisClient(config);
+            await client.Ping();
 
+            await StopRedis();
+            try
+            {
+                for (var i = 0; i < 3; ++i)
+                {
+                    try
+                    {
+                        await client.Ping();
+                        Assert.Fail($"{typeof(RedisConnectionException)} expected");
+                    }
+                    catch (RedisConnectionException)
+                    {
+                    }
+                }
+            }
+            finally
+            {
+                await StartRedis();
+            }
+
+            await client.Ping();
+        }
+        
+        [TestMethod]
+        [DynamicData(nameof(Local_Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Stopped_PubSub_Receive_Test(RedisClientConfig config)
+        {
+            if (!HasLocalRedis) // Workaround. Need to figure out proper way to execute it conditionally
+                return;
+
+            await using var client = new RedisClient(config);
+            for (var i = 0; i < 2; i++)
+            {
+                var testChannel = UniqueString();
+                await using var subscription = await client.Subscribe(testChannel);
                 await StopRedis();
                 try
                 {
-                    for (var i = 0; i < 3; ++i)
+                    for (var j = 0; j < 2; ++j)
                     {
                         try
                         {
-                            await client.Ping();
+                            await subscription.GetMessage<string>();
                             Assert.Fail($"{typeof(RedisConnectionException)} expected");
                         }
                         catch (RedisConnectionException)
@@ -48,46 +82,6 @@ namespace RedisCore.Tests
                 finally
                 {
                     await StartRedis();
-                }
-
-                await client.Ping();
-            }
-        }
-        
-        [TestMethod]
-        [DynamicData(nameof(Local_Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
-        public async Task RedisClient_Stopped_PubSub_Receive_Test(RedisClientConfig config)
-        {
-            if (!HasLocalRedis) // Workaround. Need to figure out proper way to execute it conditionally
-                return;
-
-            using (var client = new RedisClient(config))
-            {
-                for (var i = 0; i < 2; i++)
-                {
-                    var testChannel = UniqueString();
-                    using (var subscription = await client.Subscribe(testChannel))
-                    {
-                        await StopRedis();
-                        try
-                        {
-                            for (var j = 0; j < 2; ++j)
-                            {
-                                try
-                                {
-                                    await subscription.GetMessage<string>();
-                                    Assert.Fail($"{typeof(RedisConnectionException)} expected");
-                                }
-                                catch (RedisConnectionException)
-                                {
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            await StartRedis();
-                        }
-                    }
                 }
             }
         }

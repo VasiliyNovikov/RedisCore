@@ -12,7 +12,7 @@ using RedisCore.Utils;
 
 namespace RedisCore
 {
-    public class RedisClient : RedisCommandsBase, IDisposable
+    public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
     {
         private readonly RedisClientConfig _config;
         private readonly ConnectionPool _connectionPool;
@@ -37,8 +37,16 @@ namespace RedisCore
             _connectionPool.Dispose();
         }
 
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+                return;
+            _disposed = true;
+            await _connectionPool.DisposeAsync();
+        }
+
         #region Private members
-        
+
         private void CheckDisposed()
         {
             if (_disposed)
@@ -415,6 +423,17 @@ namespace RedisCore
                     _connection.Dispose();
             }
 
+            public async ValueTask DisposeAsync()
+            {
+                if (_disposed)
+                    return;
+
+                _disposed = true;
+                if (!_unsubscribed)
+                    await UnsubscribeImpl();
+                _client.ReleaseConnection(_connection);
+            }
+
             private void CheckDisposed()
             {
                 if (_disposed || _unsubscribed)
@@ -445,9 +464,13 @@ namespace RedisCore
             public async ValueTask Unsubscribe()
             {
                 CheckDisposed();
+                await UnsubscribeImpl();
+            }
+
+            private async ValueTask UnsubscribeImpl()
+            {
                 await SendCommand(new UnsubscribeCommand());
                 await GetMessage<int>("unsubscribe");
-                _unsubscribed = true;
             }
 
             private async ValueTask<T> GetMessage<T, TExtractResult>(string name, TExtractResult extractResult, CancellationToken cancellationToken = default)
