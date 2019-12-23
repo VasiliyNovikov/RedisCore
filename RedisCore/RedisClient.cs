@@ -428,9 +428,9 @@ namespace RedisCore
                 if (_disposed)
                     return;
 
-                _disposed = true;
                 if (!_unsubscribed)
-                    await UnsubscribeImpl();
+                    await Unsubscribe();
+                _disposed = true;
                 _client.ReleaseConnection(_connection);
             }
 
@@ -464,11 +464,6 @@ namespace RedisCore
             public async ValueTask Unsubscribe()
             {
                 CheckDisposed();
-                await UnsubscribeImpl();
-            }
-
-            private async ValueTask UnsubscribeImpl()
-            {
                 await SendCommand(new UnsubscribeCommand());
                 await GetMessage<int>("unsubscribe");
             }
