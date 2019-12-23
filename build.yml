@@ -5,20 +5,81 @@ variables:
 trigger:
 - master
 
-jobs:
-- template: build_template.yml
-  parameters:
-    name: Linux
-    vmImage: ubuntu-16.04
-    localRedis: true
-    publishArtifact: true
+strategy:
+  matrix:
+    Ubuntu_16:
+      imageName: ubuntu-16.04
+      localRedis: false
+      publishArtifact: false
+    Ubuntu_18:
+      imageName: ubuntu-18.04
+      localRedis: true
+      publishArtifact: false
+    Windows:
+      imageName: windows-latest
+      localRedis: false
+      publishArtifact: true
+    OSX:
+      imageName: macOS-latest
+      localRedis: false
+      publishArtifact: false
 
-- template: build_template.yml
-  parameters:
-    name: Windows
-    vmImage: vs2017-win2016
+pool:
+  vmImage: $(imageName)
 
-- template: build_template.yml
-  parameters:
-    name: Mac
-    vmImage: macOS-10.13
+steps:
+- script: env
+  displayName: Get Agent Info
+
+- bash: . 'RedisCore.Tests/install_redis_debian.sh'
+  displayName: Install Redis
+  condition: eq(variables['localRedis'], 'true')
+
+- task: UseDotNet@2
+  displayName: 'Use .NET Core SDK 2.2.x'
+  inputs:
+    version: 2.2.x
+
+- task: DotNetCoreCLI@2
+  displayName: Restore
+  inputs:
+    command: restore
+    projects: '**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: Build
+  inputs:
+    command: build
+    projects: '**/*.csproj'
+    arguments: '--configuration $(configuration)'
+
+- task: DotNetCoreCLI@2
+  displayName: Test
+  inputs:
+    command: test
+    projects: '**/*Tests/*.csproj'
+    arguments: '--configuration $(configuration)'
+  env:
+    AZURE_REDIS_PWD: $(azure_redis_password)
+    LOCAL_REDIS: $(localRedis)
+
+- task: DotNetCoreCLI@2
+  displayName: Pack
+  inputs:
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+      command: pack
+      packagesToPack: '**/RedisCore.csproj'
+      nobuild: true
+      arguments: '--configuration $(configuration)'
+    ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+      command: custom
+      custom: pack
+      arguments: $(Build.SourcesDirectory)/RedisCore/RedisCore.csproj --configuration $(configuration) --output $(Build.ArtifactStagingDirectory) --no-build --version-suffix -beta-$(Build.BuildNumber)
+  condition: "and(succeeded(), eq(variables['publishArtifact'], 'true'))"
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifact
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: drop
+  condition: "and(succeeded(), eq(variables['publishArtifact'], 'true'))"
