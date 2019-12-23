@@ -20,10 +20,11 @@ strategy:
       localRedis: false
       publishArtifact: false
 
-jobs:
+pool:
+  vmImage: $(imageName)
+
+steps:
 - template: build_template.yml
   parameters:
-    name: $(strategy)
-    vmImage: $(localRedis)
     localRedis: $(localRedis)
     publishArtifact: $(publishArtifact)
