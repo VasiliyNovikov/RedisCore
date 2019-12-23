@@ -8,10 +8,16 @@ trigger:
 jobs:
 - template: build_template.yml
   parameters:
-    name: Linux
+    name: Ubuntu 16.04
     vmImage: ubuntu-16.04
     localRedis: true
     publishArtifact: true
+
+- template: build_template.yml
+  parameters:
+    name: Ubuntu 18.04
+    vmImage: ubuntu-18.04
+    localRedis: true
 
 - template: build_template.yml
   parameters:
@@ -20,5 +26,5 @@ jobs:
 
 - template: build_template.yml
   parameters:
-    name: Mac
+    name: OSX
     vmImage: macOS-latest
