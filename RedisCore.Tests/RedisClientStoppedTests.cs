@@ -26,32 +26,30 @@ namespace RedisCore.Tests
             if (!HasLocalRedis) // Workaround. Need to figure out proper way to execute it conditionally
                 return;
 
-            using (var client = new RedisClient(config))
-            {
-                await client.Ping();
+            using var client = new RedisClient(config);
+            await client.Ping();
 
-                await StopRedis();
-                try
+            await StopRedis();
+            try
+            {
+                for (var i = 0; i < 3; ++i)
                 {
-                    for (var i = 0; i < 3; ++i)
+                    try
                     {
-                        try
-                        {
-                            await client.Ping();
-                            Assert.Fail($"{typeof(RedisConnectionException)} expected");
-                        }
-                        catch (RedisConnectionException)
-                        {
-                        }
+                        await client.Ping();
+                        Assert.Fail($"{typeof(RedisConnectionException)} expected");
+                    }
+                    catch (RedisConnectionException)
+                    {
                     }
                 }
-                finally
-                {
-                    await StartRedis();
-                }
-
-                await client.Ping();
             }
+            finally
+            {
+                await StartRedis();
+            }
+
+            await client.Ping();
         }
         
         [TestMethod]
@@ -61,12 +59,12 @@ namespace RedisCore.Tests
             if (!HasLocalRedis) // Workaround. Need to figure out proper way to execute it conditionally
                 return;
 
-            using (var client = new RedisClient(config))
+            await using (var client = new RedisClient(config))
             {
                 for (var i = 0; i < 2; i++)
                 {
                     var testChannel = UniqueString();
-                    using (var subscription = await client.Subscribe(testChannel))
+                    await using (var subscription = await client.Subscribe(testChannel))
                     {
                         await StopRedis();
                         try
@@ -91,6 +89,5 @@ namespace RedisCore.Tests
                 }
             }
         }
-
     }
 }

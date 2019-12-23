@@ -292,7 +292,7 @@ namespace RedisCore.Internal.Protocol
             private static HashSet<TItem> CreateSet<TItem>(RedisArray value)
             {
                 var items = value.Items;
-#if NETSTANDARD
+#if NETSTANDARD20
                 var result = new HashSet<TItem>();
 #else
                 var result = new HashSet<TItem>(items.Count);

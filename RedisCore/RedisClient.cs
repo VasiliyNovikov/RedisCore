@@ -12,7 +12,7 @@ using RedisCore.Utils;
 
 namespace RedisCore
 {
-    public class RedisClient : RedisCommandsBase, IDisposable
+    public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
     {
         private readonly RedisClientConfig _config;
         private readonly ConnectionPool _connectionPool;
@@ -37,8 +37,16 @@ namespace RedisCore
             _connectionPool.Dispose();
         }
 
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+                return;
+            _disposed = true;
+            await _connectionPool.DisposeAsync();
+        }
+
         #region Private members
-        
+
         private void CheckDisposed()
         {
             if (_disposed)
@@ -413,6 +421,27 @@ namespace RedisCore
                     _client.ReleaseConnection(_connection);
                 else
                     _connection.Dispose();
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                if (_disposed)
+                    return;
+
+                if (!_unsubscribed)
+                    try
+                    {
+                        await Unsubscribe();
+                    }
+                    catch (RedisConnectionException)
+                    {
+                        _connection.Dispose();
+                        _disposed = true;
+                        return;
+                    }
+
+                _disposed = true;
+                _client.ReleaseConnection(_connection);
             }
 
             private void CheckDisposed()

@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.2;netcoreapp2.1;net48</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp2.2;netcoreapp2.1</TargetFrameworks>
-    <DefineConstants Condition="'$(TargetFramework)' == 'net48'">NETSTANDARD</DefineConstants>
+    <TargetFrameworks>netcoreapp3.1;netcoreapp2.2;netcoreapp2.1;net48</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp3.1;netcoreapp2.2;netcoreapp2.1</TargetFrameworks>
+    <DefineConstants Condition="'$(TargetFramework)' == 'net48'">NETSTANDARD20</DefineConstants>
     <IsPackable>false</IsPackable>
     <LangVersion>latest</LangVersion>
     <TieredCompilation>true</TieredCompilation>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
-    <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.0.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.0.0" />
+    <PackageReference Include="System.IO.Pipelines" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RedisCore\RedisCore.csproj" />

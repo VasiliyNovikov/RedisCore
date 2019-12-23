@@ -2,11 +2,12 @@
 using System.IO;
 using System.IO.Pipelines;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using RedisCore.Pipelines;
 
 namespace RedisCore.Internal
 {
-    internal class Connection : IDisposable
+    internal class Connection : IDisposable, IAsyncDisposable
     {
         private readonly Socket _socket;
         private readonly Stream _stream;
@@ -32,6 +33,13 @@ namespace RedisCore.Internal
         public void Dispose()
         {
             _stream?.Dispose();
+            _socket.Dispose();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_stream != null)
+                await _stream.DisposeAsync();
             _socket.Dispose();
         }
 

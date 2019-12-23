@@ -5,7 +5,7 @@ using RedisCore.Utils;
 
 namespace RedisCore
 {
-    public interface ISubscription : IDisposable
+    public interface ISubscription : IDisposable, IAsyncDisposable
     {
         ValueTask Unsubscribe();
         ValueTask<T> GetMessage<T>(CancellationToken cancellationToken = default);

@@ -1,4 +1,4 @@
-﻿#if NETSTANDARD
+﻿#if NETSTANDARD20
 using System.Collections.Generic;
 using System.ComponentModel;
 

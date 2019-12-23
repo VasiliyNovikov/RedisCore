@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RedisCore.Internal
 {
-    internal class ConnectionPool : IDisposable
+    internal class ConnectionPool : IDisposable, IAsyncDisposable
     {
         private readonly RedisClientConfig _config;
         private bool _disposed;
@@ -113,6 +113,20 @@ namespace RedisCore.Internal
             _maintainTask.Wait();
             foreach (var connection in _connections)
                 connection.Dispose();
+            _connections.Clear();
+            _event.Dispose();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            _event.Set();
+            await _maintainTask;
+            foreach (var connection in _connections)
+                await connection.DisposeAsync();
             _connections.Clear();
             _event.Dispose();
         }
