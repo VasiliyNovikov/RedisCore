@@ -31,7 +31,7 @@ steps:
   - script: env
     displayName: Get Agent Info
 
-  - ${{ if eq($(localRedis), 'true') }}:
+  - ${{ if eq(variables.localRedis, 'true') }}:
     - bash: . 'RedisCore.Tests/install_redis_debian.sh'
       displayName: Install Redis
 
