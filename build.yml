@@ -26,7 +26,8 @@ pool:
 variables:
   configuration: release
   platform: any cpu
-  testVar: $(publishArtifact)
+  localRedis: $(localRedis)
+  publishArtifact: $(publishArtifact)
 
 steps:
   - script: env
