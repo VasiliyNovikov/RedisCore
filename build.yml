@@ -31,7 +31,7 @@ steps:
   - script: env
     displayName: Get Agent Info
 
-  - ${{ if eq(variables['localRedis'], 'true') }}:
+  - ${{ if eq($(localRedis), 'true') }}:
     - bash: . 'RedisCore.Tests/install_redis_debian.sh'
       displayName: Install Redis
 
@@ -61,7 +61,7 @@ steps:
       arguments: '--configuration $(configuration)'
     env:
       AZURE_REDIS_PWD: $(azure_redis_password)
-      LOCAL_REDIS: ${{ variables['localRedis'] }}
+      LOCAL_REDIS: $(localRedis)
 
   - ${{ if eq(variables['publishArtifact'], 'true') }}:
 
