@@ -36,6 +36,11 @@ steps:
   condition: eq(variables['localRedis'], 'true')
 
 - task: UseDotNet@2
+  displayName: 'Use .NET Core SDK 2.2.x'
+  inputs:
+    version: 2.2.x
+
+- task: UseDotNet@2
   displayName: 'Use .NET Core SDK 3.1.x'
   inputs:
     version: 3.1.x
