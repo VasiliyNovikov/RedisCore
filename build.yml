@@ -1,7 +1,3 @@
-variables:
-  configuration: release
-  platform: any cpu
-
 trigger:
 - master
 
@@ -10,26 +6,27 @@ strategy:
     Ubuntu_16:
       imageName: ubuntu-16.04
       localRedis: false
-      variables:
-        publishArtifact: true
+      publishArtifact: true
     Ubuntu_18:
       imageName: ubuntu-18.04
       localRedis: true
-      variables:
-        publishArtifact: false
+      publishArtifact: false
     Windows:
       imageName: windows-latest
       localRedis: false
-      variables:
-        publishArtifact: false
+      publishArtifact: false
     OSX:
       imageName: macOS-latest
       localRedis: false
-      variables:
-        publishArtifact: false
+      publishArtifact: false
 
 pool:
   vmImage: $(imageName)
+
+variables:
+  configuration: release
+  platform: any cpu
+  testVar: $(publishArtifact)
 
 steps:
   - script: env
