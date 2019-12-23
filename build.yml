@@ -6,7 +6,7 @@ strategy:
     Ubuntu_16:
       imageName: ubuntu-16.04
       localRedis: false
-      publishArtifact: true
+      publishArtifact: false
     Ubuntu_18:
       imageName: ubuntu-18.04
       localRedis: true
@@ -14,7 +14,7 @@ strategy:
     Windows:
       imageName: windows-latest
       localRedis: false
-      publishArtifact: false
+      publishArtifact: true
     OSX:
       imageName: macOS-latest
       localRedis: false
@@ -70,11 +70,11 @@ steps:
       command: custom
       custom: pack
       arguments: $(Build.SourcesDirectory)/RedisCore/RedisCore.csproj --output $(Build.ArtifactStagingDirectory) --no-build --version-suffix -beta-$(Build.BuildNumber)
-  condition: eq(variables['publishArtifact'], 'true')
+  condition: "and(succeeded(), eq(variables['publishArtifact'], 'true'))"
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Artifact
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: drop
-  condition: eq(variables['publishArtifact'], 'true')
+  condition: "and(succeeded(), eq(variables['publishArtifact'], 'true'))"
