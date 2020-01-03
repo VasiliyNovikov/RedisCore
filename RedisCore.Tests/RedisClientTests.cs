@@ -388,6 +388,39 @@ namespace RedisCore.Tests
 
         [TestMethod]
         [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        public async Task RedisClient_PubSub_Receive_Cancel_Unsubscribe_Test(RedisClientConfig config)
+        {
+            const string testMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat";
+            await using var client = new RedisClient(config);
+            for (var i = 0; i < 4; ++i)
+            {
+                var testChannel = UniqueString();
+                await using var subscription = await client.Subscribe(testChannel);
+
+                async Task Producer(CancellationToken cancellationToken)
+                {
+                    while (!cancellationToken.IsCancellationRequested)
+                        await client.Publish(testChannel, testMessage);
+                }
+
+                using var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(0.2));
+                var producer = Producer(cancellationSource.Token);
+                try
+                {
+                    while (true)
+                        await subscription.GetMessage<string>(cancellationSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    await subscription.Unsubscribe();
+                }
+
+                await producer;
+            }
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
         public async Task RedisClient_PubSub_Subscribe_Publish_Unsubscribe_Ping_Test(RedisClientConfig config)
         {
             await using (var client = new RedisClient(config))
