@@ -1,5 +1,6 @@
 using System;
 using System.IO.Pipelines;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -55,6 +56,37 @@ namespace RedisCore.Tests
 
             await Assert.ThrowsExceptionAsync<TestException>(async () => await pipe.Writer.FlushAsync());
             await Assert.ThrowsExceptionAsync<TestException>(async () => await pipe.Writer.FlushAsync());
+        }
+
+        [TestMethod]
+        public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test()
+        {
+            var pipe = new Pipe();
+
+            using var cancellationSource = new CancellationTokenSource();
+
+            async Task Producer()
+            {
+                await Task.Yield();
+
+                var testData = new byte[64];
+                testData.CopyTo(pipe.Writer.GetSpan(testData.Length));
+                pipe.Writer.Advance(testData.Length);
+
+                await pipe.Writer.FlushAsync();
+
+                cancellationSource.Cancel();
+            }
+
+            Producer();
+            try
+            {
+                await pipe.Reader.ReadAsync(cancellationSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                await pipe.Reader.ReadAsync();
+            }
         }
 
         private class TestException : Exception
