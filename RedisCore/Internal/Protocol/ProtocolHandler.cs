@@ -127,17 +127,7 @@ namespace RedisCore.Internal.Protocol
         {
             while (true)
             {
-                ReadResult readResult;
-                try
-                {
-                    readResult = await reader.ReadAsync(cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    if (!reader.TryRead(out readResult))
-                        throw;
-                }
-
+                var readResult = await reader.ReadAsync(cancellationToken);
                 var buffer = readResult.Buffer;
                 var newLinePosition = FindNewLine(buffer);
                 if (newLinePosition == null)
