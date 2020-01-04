@@ -33,7 +33,7 @@ namespace RedisCore.Tests
             await Assert.ThrowsExceptionAsync<TestException>(async () => await pipe.Reader.ReadAsync());
             await Assert.ThrowsExceptionAsync<TestException>(async () => await pipe.Reader.ReadAsync());
         }
-        
+
         [TestMethod]
         public async Task PipeWriter_Should_Fail_When_PipeReader_Completed_With_Exception()
         {
@@ -65,16 +65,16 @@ namespace RedisCore.Tests
         [TestMethod]
         public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test_Repeat_Till_Fail()
         {
-            while (true)
+            for (var i = 0; i < 5000; ++i)
                 await Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test();
         }
 
         public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test()
         {
             var pipe = new Pipe();
-            using var cancellationSource = new CancellationTokenSource();
+            var cancellationSource = new CancellationTokenSource();
 
-            async Task Producer()
+            async void Producer()
             {
                 await Task.Yield(); // Context switching is needed to repro the issue
 
@@ -87,9 +87,7 @@ namespace RedisCore.Tests
                 cancellationSource.Cancel(); // Cancel have to be called right after flush to repro the issue
             }
 
-#pragma warning disable CS4014
             Producer();
-#pragma warning restore CS4014
             try
             {
                 await pipe.Reader.ReadAsync(cancellationSource.Token);
