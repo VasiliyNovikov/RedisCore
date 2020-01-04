@@ -67,7 +67,7 @@ namespace RedisCore.Tests
 
             async Task Producer()
             {
-                await Task.Yield();
+                await Task.Yield(); // Context switching is needed to repro the issue
 
                 var testData = new byte[64];
                 testData.CopyTo(pipe.Writer.GetSpan(testData.Length));
@@ -75,7 +75,7 @@ namespace RedisCore.Tests
 
                 await pipe.Writer.FlushAsync();
 
-                cancellationSource.Cancel();
+                cancellationSource.Cancel(); // Cancel have to be called right after flush to repro the issue
             }
 
             Producer();
