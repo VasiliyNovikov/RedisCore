@@ -67,7 +67,7 @@ namespace RedisCore.Tests
 
             async Task Producer()
             {
-                await Task.Yield(); // Context switching is needed to repro the issue
+                await Task.Delay(100).ConfigureAwait(false); // Context switching is needed to repro the issue
 
                 var testData = new byte[64];
                 testData.CopyTo(pipe.Writer.GetSpan(testData.Length));
