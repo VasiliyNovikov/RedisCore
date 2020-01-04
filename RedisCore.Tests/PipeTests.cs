@@ -63,54 +63,40 @@ namespace RedisCore.Tests
         }
 
         [TestMethod]
-        public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test()
+        public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test_Repeat_Till_Fail()
         {
-            var currentContext = SynchronizationContext.Current;
-            try
-            {
-                SynchronizationContext.SetSynchronizationContext(new LockSyncContext());
-
-                var pipe = new Pipe();
-
-                using var cancellationSource = new CancellationTokenSource();
-
-                async Task Producer()
-                {
-                    await Task.Yield(); // Context switching is needed to repro the issue
-
-                    var testData = new byte[64];
-                    testData.CopyTo(pipe.Writer.GetSpan(testData.Length));
-                    pipe.Writer.Advance(testData.Length);
-
-                    await pipe.Writer.FlushAsync();
-
-                    cancellationSource.Cancel(); // Cancel have to be called right after flush to repro the issue
-                }
-
-                Producer();
-                try
-                {
-                    await pipe.Reader.ReadAsync(cancellationSource.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    await pipe.Reader.ReadAsync();
-                }
-            }
-            finally
-            {
-                SynchronizationContext.SetSynchronizationContext(currentContext);
-            }
+            while (true)
+                await Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test();
         }
 
-        private class LockSyncContext : SynchronizationContext
+        public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test()
         {
-            public override void Post(SendOrPostCallback d, object state)
+            var pipe = new Pipe();
+            using var cancellationSource = new CancellationTokenSource();
+
+            async Task Producer()
             {
-                lock (this)
-                {
-                    base.Post(d, state);
-                }
+                await Task.Yield(); // Context switching is needed to repro the issue
+
+                var testData = new byte[64];
+                testData.CopyTo(pipe.Writer.GetSpan(testData.Length));
+                pipe.Writer.Advance(testData.Length);
+
+                await pipe.Writer.FlushAsync();
+
+                cancellationSource.Cancel(); // Cancel have to be called right after flush to repro the issue
+            }
+
+#pragma warning disable CS4014
+            Producer();
+#pragma warning restore CS4014
+            try
+            {
+                await pipe.Reader.ReadAsync(cancellationSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                await pipe.Reader.ReadAsync();
             }
         }
     }
