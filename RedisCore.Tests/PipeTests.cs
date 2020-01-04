@@ -58,39 +58,60 @@ namespace RedisCore.Tests
             await Assert.ThrowsExceptionAsync<TestException>(async () => await pipe.Writer.FlushAsync());
         }
 
+        private class TestException : Exception
+        {
+        }
+
         [TestMethod]
         public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test()
         {
-            var pipe = new Pipe();
-
-            using var cancellationSource = new CancellationTokenSource();
-
-            async Task Producer()
-            {
-                await Task.Delay(100).ConfigureAwait(false); // Context switching is needed to repro the issue
-
-                var testData = new byte[64];
-                testData.CopyTo(pipe.Writer.GetSpan(testData.Length));
-                pipe.Writer.Advance(testData.Length);
-
-                await pipe.Writer.FlushAsync();
-
-                cancellationSource.Cancel(); // Cancel have to be called right after flush to repro the issue
-            }
-
-            Producer();
+            var currentContext = SynchronizationContext.Current;
             try
             {
-                await pipe.Reader.ReadAsync(cancellationSource.Token);
+                SynchronizationContext.SetSynchronizationContext(new LockSyncContext());
+
+                var pipe = new Pipe();
+
+                using var cancellationSource = new CancellationTokenSource();
+
+                async Task Producer()
+                {
+                    await Task.Yield(); // Context switching is needed to repro the issue
+
+                    var testData = new byte[64];
+                    testData.CopyTo(pipe.Writer.GetSpan(testData.Length));
+                    pipe.Writer.Advance(testData.Length);
+
+                    await pipe.Writer.FlushAsync();
+
+                    cancellationSource.Cancel(); // Cancel have to be called right after flush to repro the issue
+                }
+
+                Producer();
+                try
+                {
+                    await pipe.Reader.ReadAsync(cancellationSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    await pipe.Reader.ReadAsync();
+                }
             }
-            catch (OperationCanceledException)
+            finally
             {
-                await pipe.Reader.ReadAsync();
+                SynchronizationContext.SetSynchronizationContext(currentContext);
             }
         }
 
-        private class TestException : Exception
+        private class LockSyncContext : SynchronizationContext
         {
+            public override void Post(SendOrPostCallback d, object state)
+            {
+                lock (this)
+                {
+                    base.Post(d, state);
+                }
+            }
         }
     }
 }
