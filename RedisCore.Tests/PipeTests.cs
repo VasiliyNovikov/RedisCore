@@ -65,7 +65,7 @@ namespace RedisCore.Tests
         [TestMethod]
         public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test_Repeat_Till_Fail()
         {
-            for (var i = 0; i < 5000; ++i)
+            for (var i = 0; i < 10000; ++i)
                 await Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test();
         }
 
