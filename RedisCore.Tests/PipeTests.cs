@@ -1,5 +1,6 @@
 using System;
 using System.IO.Pipelines;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -32,7 +33,7 @@ namespace RedisCore.Tests
             await Assert.ThrowsExceptionAsync<TestException>(async () => await pipe.Reader.ReadAsync());
             await Assert.ThrowsExceptionAsync<TestException>(async () => await pipe.Reader.ReadAsync());
         }
-        
+
         [TestMethod]
         public async Task PipeWriter_Should_Fail_When_PipeReader_Completed_With_Exception()
         {
@@ -59,6 +60,42 @@ namespace RedisCore.Tests
 
         private class TestException : Exception
         {
+        }
+
+        [TestMethod]
+        public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test_Repeat_Till_Fail()
+        {
+            for (var i = 0; i < 10000; ++i)
+                await Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test();
+        }
+
+        public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test()
+        {
+            var pipe = new Pipe();
+            var cancellationSource = new CancellationTokenSource();
+
+            async void Producer()
+            {
+                await Task.Yield(); // Context switching is needed to repro the issue
+
+                var testData = new byte[64];
+                testData.CopyTo(pipe.Writer.GetSpan(testData.Length));
+                pipe.Writer.Advance(testData.Length);
+
+                await pipe.Writer.FlushAsync();
+
+                cancellationSource.Cancel(); // Cancel have to be called right after flush to repro the issue
+            }
+
+            Producer();
+            try
+            {
+                await pipe.Reader.ReadAsync(cancellationSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                await pipe.Reader.ReadAsync();
+            }
         }
     }
 }

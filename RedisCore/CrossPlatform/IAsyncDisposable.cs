@@ -5,7 +5,7 @@ namespace System
 {
     public interface IAsyncDisposable
     {
-        public ValueTask DisposeAsync();
+        ValueTask DisposeAsync();
     }
 }
 #endif
