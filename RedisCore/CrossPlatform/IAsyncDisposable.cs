@@ -1,4 +1,4 @@
-﻿#if !NETSTANDARD21
+﻿#if !NETSTANDARD2_1
 using System.Threading.Tasks;
 
 namespace System
