@@ -1,8 +1,8 @@
-#if !NETSTANDARD21
+#if !NETSTANDARD2_1
 using System;
 using System.IO;
 using System.Threading.Tasks;
-#if NETSTANDARD20
+#if NETSTANDARD2_0
 using System.Threading;
 using RedisCore.Utils;
 #endif
@@ -11,7 +11,7 @@ namespace RedisCore
 {
     public static class StreamExtensions
     {
-#if NETSTANDARD20
+#if NETSTANDARD2_0
         public static async ValueTask<int> ReadAsync(this Stream stream, Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             using var rentedBuffer = new RentedBuffer<byte>(buffer.Length);
