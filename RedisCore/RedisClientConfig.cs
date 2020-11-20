@@ -13,14 +13,14 @@ namespace RedisCore
         private const int DefaultMaxFreeConnections = 2;
 
         private static int DefaultPort(bool useSsl) => useSsl ? DefaultSslPort : DefaultTcpPort;
-        
-        
+
+
         public EndPoint EndPoint { get; }
-        
+
         public bool UseSsl { get; }
 
         public string HostName{ get; }
-        
+
         public string Password { get; set; }
 
         public int BufferSize { get; set; } = DefaultBufferSize;
@@ -31,10 +31,12 @@ namespace RedisCore
 
         public bool UseBufferPool { get; set; } = true;
 
+        public bool UseScriptCache { get; set; } = false;
+
         public TimeSpan LoadingRetryDelayMin { get; set; } = TimeSpan.FromMilliseconds(20);
-        
+
         public TimeSpan LoadingRetryDelayMax { get; set; } = TimeSpan.FromMilliseconds(200);
-        
+
         public TimeSpan LoadingRetryTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
         public RedisClientConfig(EndPoint endPoint)

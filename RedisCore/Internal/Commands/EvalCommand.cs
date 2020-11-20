@@ -19,29 +19,29 @@ namespace RedisCore.Internal.Commands
             return result;
         }
         
-        private EvalCommand(string script, string[] keys, RedisValueObject[] args) 
-            : base(CommandNames.Eval, CreateArgs(script, keys ?? EmptyKeys, args ?? EmptyArgs))
+        private EvalCommand(string script, bool isSHA, string[] keys, RedisValueObject[] args) 
+            : base(isSHA ? CommandNames.EvalSHA : CommandNames.Eval, CreateArgs(script, keys ?? EmptyKeys, args ?? EmptyArgs))
         {
         }
 
-        public static EvalCommand<TResult> Create(string script, string[] keys)
+        public static EvalCommand<TResult> Create(string script, bool isSHA, string[] keys)
         {
-            return new EvalCommand<TResult>(script, keys, null);
+            return new EvalCommand<TResult>(script, isSHA, keys, null);
         }
 
-        public static EvalCommand<TResult> Create<T>(string script, T arg, string[] keys)
+        public static EvalCommand<TResult> Create<T>(string script, bool isSHA, T arg, string[] keys)
         {
-            return new EvalCommand<TResult>(script, keys, new[] {arg.ToValue()});
+            return new EvalCommand<TResult>(script, isSHA, keys, new[] {arg.ToValue()});
         }
 
-        public static EvalCommand<TResult> Create<T1, T2>(string script, T1 arg1, T2 arg2, string[] keys)
+        public static EvalCommand<TResult> Create<T1, T2>(string script, bool isSHA, T1 arg1, T2 arg2, string[] keys)
         {
-            return new EvalCommand<TResult>(script, keys, new[] {arg1.ToValue(), arg2.ToValue()});
+            return new EvalCommand<TResult>(script, isSHA, keys, new[] {arg1.ToValue(), arg2.ToValue()});
         }
 
-        public static EvalCommand<TResult> Create<T1, T2, T3>(string script, T1 arg1, T2 arg2, T3 arg3, string[] keys)
+        public static EvalCommand<TResult> Create<T1, T2, T3>(string script, bool isSHA, T1 arg1, T2 arg2, T3 arg3, string[] keys)
         {
-            return new EvalCommand<TResult>(script, keys, new[] {arg1.ToValue(), arg2.ToValue(), arg3.ToValue()});
+            return new EvalCommand<TResult>(script, isSHA, keys, new[] {arg1.ToValue(), arg2.ToValue(), arg3.ToValue()});
         }
     }
 }
