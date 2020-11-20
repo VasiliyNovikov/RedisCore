@@ -41,6 +41,9 @@ namespace RedisCore.Internal.Commands
         public static readonly RedisString Subscribe = new RedisByteString("SUBSCRIBE");
         public static readonly RedisString Unsubscribe = new RedisByteString("UNSUBSCRIBE");
         
+        public static readonly RedisString Script = new RedisByteString("SCRIPT");
+        public static readonly RedisString Load = new RedisByteString("LOAD");
         public static readonly RedisString Eval = new RedisByteString("EVAL");
+        public static readonly RedisString EvalSHA = new RedisByteString("EVALSHA");
     }
 }

@@ -17,31 +17,36 @@ namespace RedisCore.Tests
 
         private static readonly int[] BufferSizes = {64, 256, 65536};
 
-        private static IEnumerable<RedisClientConfig>  LocalTestConfigs()
+        private static IEnumerable<RedisClientConfig> LocalTestConfigs(bool addScriptCache = false)
         {
-            foreach (var bufferSize in BufferSizes)
+            foreach (var useScriptCache in addScriptCache ? new[] {false, true} : new [] {false})
             {
-                foreach (var forceUseNetworkStream in new[] {false, true})
+                foreach (var bufferSize in BufferSizes)
                 {
-                    yield return new RedisClientConfig(LocalRedisAddress)
+                    foreach (var forceUseNetworkStream in new[] {false, true})
                     {
-                        BufferSize = bufferSize,
-                        ForceUseNetworkStream = forceUseNetworkStream
-                    };
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                        yield return new RedisClientConfig(new UnixDomainSocketEndPoint("/var/run/redis/redis.sock"))
+                        yield return new RedisClientConfig(LocalRedisAddress)
                         {
                             BufferSize = bufferSize,
-                            ForceUseNetworkStream = forceUseNetworkStream
+                            ForceUseNetworkStream = forceUseNetworkStream,
+                            UseScriptCache = useScriptCache
                         };
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                            yield return new RedisClientConfig(new UnixDomainSocketEndPoint("/var/run/redis/redis.sock"))
+                            {
+                                BufferSize = bufferSize,
+                                ForceUseNetworkStream = forceUseNetworkStream,
+                                UseScriptCache = useScriptCache
+                            };
+                    }
                 }
             }
         }
 
-        private static IEnumerable<RedisClientConfig> TestConfigs()
+        protected static IEnumerable<RedisClientConfig> TestConfigs(bool addScriptCache = false)
         {
             if (HasLocalRedis)
-                foreach (var config in LocalTestConfigs())
+                foreach (var config in LocalTestConfigs(addScriptCache))
                     yield return config;
 
             if (!IsVstsBuild)
@@ -53,10 +58,11 @@ namespace RedisCore.Tests
             Assert.IsNotNull(host, "Host is missing");
             Assert.IsNotNull(password, "Password is missing");
 
-            foreach (var bufferSize in BufferSizes)
-                yield return new RedisClientConfig(host, true) {Password = password, BufferSize = bufferSize};
+            foreach (var useScriptCache in addScriptCache ? new[] {false, true} : new [] {false})
+                foreach (var bufferSize in BufferSizes)
+                    yield return new RedisClientConfig(host, true) {Password = password, BufferSize = bufferSize, UseScriptCache = useScriptCache};
         }
-        
+
         protected static IEnumerable<object[]> Local_Test_Endpoints_Data() => LocalTestConfigs().Select(cfg => new object[] {cfg});
         protected static IEnumerable<object[]> Test_Endpoints_Data() => TestConfigs().Select(cfg => new object[] {cfg});
 

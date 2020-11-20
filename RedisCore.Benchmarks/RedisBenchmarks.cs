@@ -12,11 +12,15 @@ namespace RedisCore.Benchmarks
 
         protected RedisClient TcpClient { get; }
 
+        protected RedisClient TcpClientScriptCache { get; }
+
         protected RedisClient TcpClientStreamed { get; }
         
         protected RedisClient TcpClientNoBufferPool { get; }
 
         protected RedisClient UnixClient { get; }
+
+        protected RedisClient UnixClientScriptCache { get; }
 
         protected RedisClient UnixClientStreamed { get; }
         
@@ -31,6 +35,8 @@ namespace RedisCore.Benchmarks
             UnixOfficialClient = ConnectionMultiplexer.Connect(new ConfigurationOptions {EndPoints = {unixEndPoint}}).GetDatabase();
             TcpClient = new RedisClient(tcpEndPoint);
             UnixClient = new RedisClient(unixEndPoint);
+            TcpClientScriptCache = new RedisClient(new RedisClientConfig(tcpEndPoint){UseScriptCache = true});
+            UnixClientScriptCache = new RedisClient(new RedisClientConfig(unixEndPoint){UseScriptCache = true});
             TcpClientStreamed = new RedisClient(new RedisClientConfig(tcpEndPoint){ForceUseNetworkStream = true});
             UnixClientStreamed = new RedisClient(new RedisClientConfig(unixEndPoint){ForceUseNetworkStream = true});
             TcpClientNoBufferPool = new RedisClient(new RedisClientConfig(tcpEndPoint){UseBufferPool = false});

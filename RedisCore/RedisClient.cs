@@ -17,11 +17,15 @@ namespace RedisCore
         private readonly RedisClientConfig _config;
         private readonly ConnectionPool _connectionPool;
         private bool _disposed;
-        
+
+        private protected override ScriptCache Scripts { get; }
+
         public RedisClient(RedisClientConfig config)
         {
             _config = config;
             _connectionPool = new ConnectionPool(_config);
+            if (config.UseScriptCache)
+                Scripts = new ScriptCache(this);
         }
 
         public RedisClient(EndPoint endPoint)
@@ -166,7 +170,7 @@ namespace RedisCore
             return result.To(bufferPool);
         }
 
-        private protected override async ValueTask<T> Execute<T>(Command<T> command)
+        internal override async ValueTask<T> Execute<T>(Command<T> command)
         {
             CheckDisposed();
             var connection = await AcquireConnection();
@@ -210,7 +214,9 @@ namespace RedisCore
             private bool _disposed;
             private readonly List<string> _watchedKeys = new List<string>();
             private readonly List<QueuedCommand> _queuedCommands = new List<QueuedCommand>();
-            
+
+            private protected override ScriptCache Scripts => _client.Scripts;
+
             public Transaction(RedisClient client)
             {
                 _client = client;
@@ -291,7 +297,7 @@ namespace RedisCore
                 return await command.Task;
             }
 
-            private protected override async ValueTask<T> Execute<T>(Command<T> command)
+            internal override async ValueTask<T> Execute<T>(Command<T> command)
             {
                 CheckDisposed();
                 return await Queue(new QueuedValueCommand<T>(command));

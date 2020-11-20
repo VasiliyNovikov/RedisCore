@@ -10,7 +10,7 @@ namespace RedisCore.Benchmarks
             //BenchmarkRunner.Run<RedisSetGetDelBenchmarks>();
             //BenchmarkRunner.Run<RedisSetGetDelLargeBenchmarks>();
             //BenchmarkRunner.Run<RedisConnectDisconnectBenchmarks>();
-            BenchmarkRunner.Run<RedisReliableEnqueueLargeBenchmarks>();
+            BenchmarkRunner.Run<RedisReliableEnqueueBenchmarks>();
         }
     }
 }

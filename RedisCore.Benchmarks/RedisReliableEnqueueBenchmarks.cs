@@ -37,6 +37,20 @@ namespace RedisCore.Benchmarks
         }
 
         [Benchmark]
+        public Task Tcp_Client_Reliable_Enqueue_Script_Cache()
+        {
+            _client = TcpClientScriptCache;
+            return Reliable_Enqueue_Script(); 
+        }
+
+        [Benchmark]
+        public Task Unix_Client_Reliable_Enqueue_Script_Cache()
+        {
+            _client = UnixClientScriptCache;
+            return Reliable_Enqueue_Script(); 
+        }
+
+        [Benchmark]
         public Task Tcp_Client_Reliable_Enqueue_Tran()
         {
             _client = TcpClient;
