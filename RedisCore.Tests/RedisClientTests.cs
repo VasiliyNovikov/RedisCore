@@ -406,8 +406,10 @@ namespace RedisCore.Tests
             }
         }
         
+        protected static IEnumerable<object[]> Eval_Test_Endpoints_Data() => TestConfigs(true).Select(cfg => new object[] {cfg});
+
         [TestMethod]
-        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        [DynamicData(nameof(Eval_Test_Endpoints_Data), typeof(RedisClientTests), DynamicDataSourceType.Method)]
         public async Task RedisClient_Eval_Echo_Test(RedisClientConfig config)
         {
             await using var client = new RedisClient(config);
@@ -417,7 +419,7 @@ namespace RedisCore.Tests
         }
 
         [TestMethod]
-        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        [DynamicData(nameof(Eval_Test_Endpoints_Data), typeof(RedisClientTests), DynamicDataSourceType.Method)]
         public async Task RedisClient_Eval_Echo_Int_Test(RedisClientConfig config)
         {
             await using var client = new RedisClient(config);
@@ -427,7 +429,7 @@ namespace RedisCore.Tests
         }
 
         [TestMethod]
-        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        [DynamicData(nameof(Eval_Test_Endpoints_Data), typeof(RedisClientTests), DynamicDataSourceType.Method)]
         public async Task RedisClient_Eval_Echo_Buffered_Test(RedisClientConfig config)
         {
             using var bufferPool = BufferPool.Create<byte>();
@@ -438,7 +440,7 @@ namespace RedisCore.Tests
         }
 
         [TestMethod]
-        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        [DynamicData(nameof(Eval_Test_Endpoints_Data), typeof(RedisClientTests), DynamicDataSourceType.Method)]
         public async Task RedisClient_Set_Eval_Get_Test(RedisClientConfig config)
         {
             await using var client = new RedisClient(config);
@@ -456,9 +458,9 @@ namespace RedisCore.Tests
                 await client.Delete(testKey);
             }
         }
-        
+
         [TestMethod]
-        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        [DynamicData(nameof(Eval_Test_Endpoints_Data), typeof(RedisClientTests), DynamicDataSourceType.Method)]
         public async Task RedisClient_Set_2_Eval_Get_2_Test(RedisClientConfig config)
         {
             await using var client = new RedisClient(config);
@@ -486,9 +488,9 @@ return {data1, data2}";
                 await client.Delete(testKey2);
             }
         }
-        
+
         [TestMethod]
-        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        [DynamicData(nameof(Eval_Test_Endpoints_Data), typeof(RedisClientTests), DynamicDataSourceType.Method)]
         public async Task RedisClient_Eval_Get_Optional_Test(RedisClientConfig config)
         {
             await using var client = new RedisClient(config);
@@ -496,9 +498,9 @@ return {data1, data2}";
             Assert.AreEqual(testValue, await client.Eval<Optional<string>>($"return '{testValue}'"));
             Assert.AreEqual(Optional<string>.Unspecified, await client.Eval<Optional<string>>("return false"));
         }
-        
+
         [TestMethod]
-        [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+        [DynamicData(nameof(Eval_Test_Endpoints_Data), typeof(RedisClientTests), DynamicDataSourceType.Method)]
         public async Task RedisClient_Eval_Move_From_Key_To_List_Test(RedisClientConfig config)
         {
             await using var client = new RedisClient(config);

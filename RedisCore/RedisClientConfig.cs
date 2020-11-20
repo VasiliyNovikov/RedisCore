@@ -87,6 +87,12 @@ namespace RedisCore
                     featureBuilder.Append(", ");
                 featureBuilder.Append("forceUseNetworkStream");
             }
+            if (UseScriptCache)
+            {
+                if (featureBuilder.Length > 0)
+                    featureBuilder.Append(", ");
+                featureBuilder.Append("useScriptCache");
+            }
 
             return $"{schema}://{address} {{{featureBuilder}}})";
         }
