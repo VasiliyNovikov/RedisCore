@@ -441,7 +441,7 @@ namespace RedisCore
                     }
                     catch (RedisConnectionException)
                     {
-                        _connection.Dispose();
+                        await _connection.DisposeAsync();
                         _disposed = true;
                         return;
                     }

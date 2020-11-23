@@ -24,11 +24,17 @@ namespace RedisCore.Internal
 
         private async Task MaintainPool()
         {
-            while (!_disposed)
+            try
             {
-                await Task.Delay(_config.ConnectionPoolMaintenanceInterval, _maintainTaskCancellation.Token);
-                while (_connections.Count > _config.MaxFreeConnections && _connections.TryTake(out var connection))
-                    await connection.DisposeAsync();
+                while (!_disposed)
+                {
+                    await Task.Delay(_config.ConnectionPoolMaintenanceInterval, _maintainTaskCancellation.Token);
+                    while (_connections.Count > _config.MaxFreeConnections && _connections.TryTake(out var connection))
+                        await connection.DisposeAsync();
+                }
+            }
+            catch (OperationCanceledException)
+            {
             }
         }
 
