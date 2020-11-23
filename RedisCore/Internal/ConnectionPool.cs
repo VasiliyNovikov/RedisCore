@@ -13,22 +13,22 @@ namespace RedisCore.Internal
         private readonly RedisClientConfig _config;
         private bool _disposed;
         private readonly ConcurrentBag<Connection> _connections = new ConcurrentBag<Connection>();
-        private readonly AutoResetEvent _event = new AutoResetEvent(false);
         private readonly Task _maintainTask;
+        private readonly CancellationTokenSource _maintainTaskCancellation = new CancellationTokenSource();
 
         public ConnectionPool(RedisClientConfig config)
         {
             _config = config;
-            _maintainTask = Task.Factory.StartNew(MaintainPool, TaskCreationOptions.LongRunning);
+            _maintainTask = MaintainPool();
         }
 
-        private void MaintainPool()
+        private async Task MaintainPool()
         {
             while (!_disposed)
             {
+                await Task.Delay(20, _maintainTaskCancellation.Token);
                 while (_connections.Count > _config.MaxFreeConnections && _connections.TryTake(out var connection))
-                    connection.Dispose();
-                _event.WaitOne();
+                    await connection.DisposeAsync();
             }
         }
 
@@ -90,7 +90,7 @@ namespace RedisCore.Internal
                 connection.Dispose();
             }
         }
-        
+
         public void Release(Connection connection)
         {
             if (!connection.Connected)
@@ -100,7 +100,6 @@ namespace RedisCore.Internal
             }
             
             _connections.Add(connection);
-            _event.Set();
         }
 
         public void Dispose()
@@ -109,12 +108,12 @@ namespace RedisCore.Internal
                 return;
 
             _disposed = true;
-            _event.Set();
+            _maintainTaskCancellation.Cancel();
             _maintainTask.Wait();
             foreach (var connection in _connections)
                 connection.Dispose();
             _connections.Clear();
-            _event.Dispose();
+            _maintainTaskCancellation.Dispose();
         }
 
         public async ValueTask DisposeAsync()
@@ -123,12 +122,12 @@ namespace RedisCore.Internal
                 return;
 
             _disposed = true;
-            _event.Set();
+            _maintainTaskCancellation.Cancel();
             await _maintainTask;
             foreach (var connection in _connections)
                 await connection.DisposeAsync();
             _connections.Clear();
-            _event.Dispose();
+            _maintainTaskCancellation.Dispose();
         }
     }
 }
