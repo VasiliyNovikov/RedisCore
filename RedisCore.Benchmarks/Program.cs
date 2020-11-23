@@ -7,10 +7,10 @@ namespace RedisCore.Benchmarks
         private static void Main()
         {
             //BenchmarkRunner.Run<RedisPingBenchmarks>();
-            //BenchmarkRunner.Run<RedisSetGetDelBenchmarks>();
+            BenchmarkRunner.Run<RedisSetGetDelBenchmarks>();
             //BenchmarkRunner.Run<RedisSetGetDelLargeBenchmarks>();
             //BenchmarkRunner.Run<RedisConnectDisconnectBenchmarks>();
-            BenchmarkRunner.Run<RedisReliableEnqueueBenchmarks>();
+            //BenchmarkRunner.Run<RedisReliableEnqueueBenchmarks>();
         }
     }
 }

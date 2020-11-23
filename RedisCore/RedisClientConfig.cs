@@ -10,7 +10,8 @@ namespace RedisCore
         private const int DefaultTcpPort = 6379;
         private const int DefaultSslPort = 6380;
         private const int DefaultBufferSize = 2048;
-        private const int DefaultMaxFreeConnections = 2;
+        private const int DefaultMaxFreeConnections = 3;
+        private static readonly TimeSpan DefaultConnectionPoolMaintenanceInterval = TimeSpan.FromSeconds(30);
 
         private static int DefaultPort(bool useSsl) => useSsl ? DefaultSslPort : DefaultTcpPort;
 
@@ -26,12 +27,14 @@ namespace RedisCore
         public int BufferSize { get; set; } = DefaultBufferSize;
 
         public int MaxFreeConnections { get; set; } = DefaultMaxFreeConnections;
+        
+        public TimeSpan ConnectionPoolMaintenanceInterval { get; set; } = DefaultConnectionPoolMaintenanceInterval;
 
         public bool ForceUseNetworkStream { get; set; }
 
         public bool UseBufferPool { get; set; } = true;
 
-        public bool UseScriptCache { get; set; } = false;
+        public bool UseScriptCache { get; set; }
 
         public TimeSpan LoadingRetryDelayMin { get; set; } = TimeSpan.FromMilliseconds(20);
 
