@@ -26,7 +26,7 @@ namespace RedisCore.Internal
         {
             while (!_disposed)
             {
-                await Task.Delay(20, _maintainTaskCancellation.Token);
+                await Task.Delay(_config.ConnectionPoolMaintenanceInterval, _maintainTaskCancellation.Token);
                 while (_connections.Count > _config.MaxFreeConnections && _connections.TryTake(out var connection))
                     await connection.DisposeAsync();
             }
@@ -79,7 +79,7 @@ namespace RedisCore.Internal
             {
                 if (connection.Connected)
                     return connection;
-                connection.Dispose();
+                await connection.DisposeAsync();
             }
 
             while (true)
@@ -87,7 +87,7 @@ namespace RedisCore.Internal
                 connection = await Create();
                 if (connection.Connected)
                     return connection;
-                connection.Dispose();
+                await connection.DisposeAsync();
             }
         }
 
