@@ -14,8 +14,16 @@ namespace RedisCore.Internal
         public async ValueTask<string> Get(string script)
         {
             if (!_scripts.TryGetValue(script, out var scriptHash))
-                _scripts[script] = scriptHash = await _client.Execute(new ScriptLoadCommand(script));
+                _scripts[script] = scriptHash = await GetNoCache(script);
             return scriptHash;
         }
+
+        public async ValueTask Invalidate()
+        {
+            foreach (var script in _scripts.Keys) 
+                await GetNoCache(script);
+        }
+
+        private async ValueTask<string> GetNoCache(string script) => await _client.Execute(new ScriptLoadCommand(script));
     }
 }

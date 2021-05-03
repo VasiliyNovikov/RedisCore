@@ -140,10 +140,16 @@ namespace RedisCore
                 }
                 catch (RedisClientException e)
                 {
+                    if (e.Type == KnownRedisErrors.NoScript)
+                    {
+                        await Scripts.Invalidate();
+                        continue;
+                    }
+
                     // Right after start Redis server accepts connections immediately
                     // but still not operation by some time while loading database
                     // So it always returns error in response until fully loaded 
-                    if (e.Type != "LOADING" || MonotonicTime.Now > retryTimeoutTime)
+                    if (e.Type != KnownRedisErrors.Loading || MonotonicTime.Now > retryTimeoutTime)
                         throw;
                     
                     await Task.Delay(retryDelay);
