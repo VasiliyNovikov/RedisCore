@@ -142,7 +142,7 @@ namespace RedisCore
                 {
                     if (e.Type == KnownRedisErrors.NoScript)
                     {
-                        await Scripts.Invalidate();
+                        await Scripts.ReUploadAll();
                         continue;
                     }
 
