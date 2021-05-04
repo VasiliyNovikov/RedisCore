@@ -160,6 +160,11 @@ namespace RedisCore.Internal
             return await Execute(EvalCommand<TResult>.Create(script, IsScriptCacheEnabled, arg1, arg2, arg3, keys));
         }
 
+        public async ValueTask ScriptFlush()
+        {
+            await Execute(new ScriptFlushCommand());
+        }
+
         #endregion IRedisCommands
 
         #region IRedisBufferCommands

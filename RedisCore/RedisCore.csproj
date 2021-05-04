@@ -3,7 +3,7 @@
     <TargetFrameworks>net5.0;netcoreapp3.1;netcoreapp2.1;netstandard2.0;netstandard2.1</TargetFrameworks>
     <DefineConstants Condition="'$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net5.0'">NETSTANDARD2_1</DefineConstants>
     <LangVersion>latest</LangVersion>
-    <Version>0.2.10</Version>
+    <Version>0.2.11</Version>
     <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
     <Authors>Vasiliy Novikov</Authors>
     <Description>Light .NET Core Redis client</Description>

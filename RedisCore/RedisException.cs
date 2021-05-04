@@ -38,4 +38,10 @@ namespace RedisCore
             Type = type;
         }
     }
+
+    public static class KnownRedisErrors
+    {
+        public const string Loading = "LOADING";
+        public const string NoScript = "NOSCRIPT";
+    }
 }

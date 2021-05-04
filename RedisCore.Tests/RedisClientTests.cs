@@ -441,6 +441,21 @@ namespace RedisCore.Tests
 
         [TestMethod]
         [DynamicData(nameof(Eval_Test_Endpoints_Data), typeof(RedisClientTests), DynamicDataSourceType.Method)]
+        public async Task RedisClient_Eval_Echo_Flush_Test(RedisClientConfig config)
+        {
+            await using var client = new RedisClient(config);
+            var testValue = UniqueString();
+            var value = await client.Eval<string, string>("return ARGV[1]", testValue);
+            Assert.AreEqual(testValue, value);
+
+            await client.ScriptFlush();
+            
+            value = await client.Eval<string, string>("return ARGV[1]", testValue);
+            Assert.AreEqual(testValue, value);
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(Eval_Test_Endpoints_Data), typeof(RedisClientTests), DynamicDataSourceType.Method)]
         public async Task RedisClient_Set_Eval_Get_Test(RedisClientConfig config)
         {
             await using var client = new RedisClient(config);
