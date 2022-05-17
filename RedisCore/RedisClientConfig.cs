@@ -67,9 +67,10 @@ namespace RedisCore
 
         public override string ToString()
         {
-            var schema = EndPoint is UnixDomainSocketEndPoint ? "unix" : (UseSsl ? "ssl" : "tcp");
+            var isUnixEndpoint = EndPoint.AddressFamily == AddressFamily.Unix;
+            var schema = isUnixEndpoint ? "unix" : (UseSsl ? "ssl" : "tcp");
             string address;
-            if (EndPoint is UnixDomainSocketEndPoint)
+            if (isUnixEndpoint)
                 address = EndPoint.ToString()!;
             else
             {

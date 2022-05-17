@@ -14,7 +14,7 @@ namespace RedisCore.Internal
         private bool _disposed;
         private readonly ConcurrentBag<Connection> _connections = new();
         private readonly Task _maintainTask;
-        private readonly CancellationTokenSource _maintainTaskCancellation = new CancellationTokenSource();
+        private readonly CancellationTokenSource _maintainTaskCancellation = new();
 
         public ConnectionPool(RedisClientConfig config)
         {
@@ -41,7 +41,7 @@ namespace RedisCore.Internal
         private async ValueTask<Connection> Create()
         {
             var endPoint = _config.EndPoint;
-            var isUnixEndpoint = endPoint is UnixDomainSocketEndPoint;
+            var isUnixEndpoint = endPoint.AddressFamily == AddressFamily.Unix;
             var socket = new Socket(endPoint.AddressFamily, SocketType.Stream, isUnixEndpoint ? ProtocolType.Unspecified : ProtocolType.Tcp);
             try
             {
