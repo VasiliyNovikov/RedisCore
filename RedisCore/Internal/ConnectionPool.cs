@@ -52,12 +52,12 @@ namespace RedisCore.Internal
                 Stream? stream = null;
                 if (_config.UseSsl || _config.ForceUseNetworkStream)
                 {
-                    stream = new NetworkStream(socket, false);
+                    stream = new NetworkStream(socket);
                     if (_config.UseSsl)
                     {
                         try
                         {
-                            var sslStream = new SslStream(new NetworkStream(socket, false));
+                            var sslStream = new SslStream(stream);
                             await sslStream.AuthenticateAsClientAsync(_config.HostName!);
                             stream = sslStream;
                         }
