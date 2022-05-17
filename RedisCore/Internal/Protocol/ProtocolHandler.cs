@@ -115,12 +115,10 @@ namespace RedisCore.Internal.Protocol
         {
             if (buffer.IsSingleSegment)
                 return Encoding.GetString(buffer.First.Span);
-            
-            using (var localBuffer = new RentedBuffer<byte>((int)buffer.Length))
-            {
-                buffer.CopyTo(localBuffer);
-                return Encoding.GetString(localBuffer.Span);
-            }
+
+            using var localBuffer = new RentedBuffer<byte>((int)buffer.Length);
+            buffer.CopyTo(localBuffer);
+            return Encoding.GetString(localBuffer.Span);
         }
 
         public static async ValueTask<RedisObject> Read(PipeReader reader, IBufferPool<byte> bufferPool, CancellationToken cancellationToken = default)
@@ -213,7 +211,7 @@ namespace RedisCore.Internal.Protocol
                     }
                     case '-':
                         var errorMessagePos = line.PositionOf((byte) ' ');
-                        string type;
+                        string? type;
                         string message;
                         if (errorMessagePos == null)
                         {

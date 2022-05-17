@@ -5,7 +5,7 @@
         public string Type { get; }
         public string Message { get; }
 
-        public RedisError(string type, string message)
+        public RedisError(string? type, string message)
         {
             Type = type ?? "Error";
             Message = message;

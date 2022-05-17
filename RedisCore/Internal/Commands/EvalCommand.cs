@@ -19,7 +19,7 @@ namespace RedisCore.Internal.Commands
             return result;
         }
         
-        private EvalCommand(string script, bool isSHA, string[] keys, RedisValueObject[] args) 
+        private EvalCommand(string script, bool isSHA, string[]? keys, RedisValueObject[]? args) 
             : base(isSHA ? CommandNames.EvalSHA : CommandNames.Eval, CreateArgs(script, keys ?? EmptyKeys, args ?? EmptyArgs))
         {
         }

@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#if NETSTANDARD2_0
+#if !NETCOREAPP3_1_OR_GREATER
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -19,7 +19,7 @@ namespace RedisCore
         private const int NativeAddressSize = NativePathOffset + NativePathLength; // sizeof(sockaddr_un)
 
         private static readonly Encoding PathEncoding = Encoding.UTF8;
-        private static readonly Lazy<bool> UdsSupported = new Lazy<bool>(() =>
+        private static readonly Lazy<bool> UdsSupported = new(() =>
         {
             try
             {

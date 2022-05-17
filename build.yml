@@ -7,16 +7,16 @@ trigger:
 
 strategy:
   matrix:
-    Ubuntu_16:
-      imageName: ubuntu-16.04
-      localRedis: true
-      publishArtifact: false
     Ubuntu_18:
       imageName: ubuntu-18.04
       localRedis: true
       publishArtifact: false
     Ubuntu_20:
       imageName: ubuntu-20.04
+      localRedis: true
+      publishArtifact: false
+    Ubuntu_22:
+      imageName: ubuntu-22.04
       localRedis: true
       publishArtifact: false
     Windows:

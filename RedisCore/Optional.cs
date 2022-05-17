@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace RedisCore
 {
-    public struct Optional<T> : IEquatable<Optional<T>>
+    public readonly struct Optional<T> : IEquatable<Optional<T>>
     {
         private static readonly IEqualityComparer<T> ValueComparer = EqualityComparer<T>.Default;
         
@@ -27,17 +27,17 @@ namespace RedisCore
             return HasValue == other.HasValue && (!HasValue || ValueComparer.Equals(_value, other._value));
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return !ReferenceEquals(null, obj) && obj is Optional<T> other && Equals(other);
+            return obj is Optional<T> other && Equals(other);
         }
 
         public override int GetHashCode()
         {
-            return HasValue ? 0 : ValueComparer.GetHashCode(_value);
+            return HasValue ? 0 : ValueComparer.GetHashCode(_value!);
         }
 
-        public static implicit operator Optional<T>(T value) => new Optional<T>(value);
+        public static implicit operator Optional<T>(T value) => new(value);
         
         public static explicit operator T(Optional<T> value) => value.Value;
 

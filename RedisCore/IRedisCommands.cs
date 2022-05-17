@@ -58,11 +58,13 @@ namespace RedisCore
 
     public static class RedisCommandsExtensions
     {
-        public static async ValueTask<T> GetOrDefault<T>(this IRedisCommands redis, string key, T defaultValue = default)
+        public static async ValueTask<T> GetOrDefault<T>(this IRedisCommands redis, string key, T defaultValue)
         {
             var result = await redis.Get<T>(key);
             return result.HasValue ? result.Value : defaultValue;
         }
+
+        public static ValueTask<T?> GetOrDefault<T>(this IRedisCommands redis, string key) => GetOrDefault<T?>(redis, key, default);
 
         public static ValueTask<bool> Set<T>(this IRedisCommands redis, string key, T value, OptimisticConcurrency concurrency)
         {

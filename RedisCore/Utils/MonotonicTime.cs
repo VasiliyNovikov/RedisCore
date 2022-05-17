@@ -48,6 +48,7 @@ namespace RedisCore.Utils
             }
         
 // ReSharper disable InconsistentNaming
+// ReSharper disable IdentifierTypo
             private enum clockid_t
             {
                 CLOCK_MONOTONIC_RAW = 4
@@ -63,6 +64,7 @@ namespace RedisCore.Utils
         
             [DllImport("libc.so.6", SetLastError = true)]
             private static extern int clock_gettime(clockid_t clk_id, out timespec tp);
+// ReSharper restore IdentifierTypo
 // ReSharper restore InconsistentNaming
         }
     }

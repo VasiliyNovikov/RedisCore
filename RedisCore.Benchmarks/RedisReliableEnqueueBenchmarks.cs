@@ -12,9 +12,9 @@ namespace RedisCore.Benchmarks
         
         protected virtual int ValueLength => 512;
 
-        private RedisClient _client;
-        private string _buffer;
-        private string _queue;
+        private RedisClient _client = null!;
+        private string _buffer = null!;
+        private string _queue = null!;
 
         public RedisReliableEnqueueBenchmarks()
         {

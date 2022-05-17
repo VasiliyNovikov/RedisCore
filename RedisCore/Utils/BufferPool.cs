@@ -19,7 +19,7 @@ namespace RedisCore.Utils
 
         private class Implementation<T> : IBufferPool<T>
         {
-            private T[][] _buffers;
+            private T[][]? _buffers;
             private int _length;
 
             public T[] Rent(int minimumLength)

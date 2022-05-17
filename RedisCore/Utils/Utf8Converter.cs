@@ -20,12 +20,10 @@ namespace RedisCore.Utils
 
             if (source.Length < maxSize)
                 maxSize = (int)source.Length;
-            
-            using (var buffer = new RentedBuffer<byte>(maxSize))
-            {
-                source.CopyTo(buffer);
-                return TryParse(buffer.Span, out value, out bytesConsumed, standardFormat);
-            }
+
+            using var buffer = new RentedBuffer<byte>(maxSize);
+            source.CopyTo(buffer);
+            return TryParse(buffer.Span, out value, out bytesConsumed, standardFormat);
         }
 
         public static bool TryFormat<T>(T value, Span<byte> destination, out int bytesWritten, StandardFormat format = default)
@@ -69,7 +67,7 @@ namespace RedisCore.Utils
         }
         
         private delegate bool TryParseDelegate<T>(ReadOnlySpan<byte> source, out T value, out int bytesConsumed, char standardFormat);
-        private delegate bool TryFormatDelegate<T>(T value, Span<byte> destination, out int bytesWritten, StandardFormat format);
+        private delegate bool TryFormatDelegate<in T>(T value, Span<byte> destination, out int bytesWritten, StandardFormat format);
         
         private class ParseFunctionality<T> : Functionality<ParseFunctionality<T>, T>
         {

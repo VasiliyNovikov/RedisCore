@@ -12,7 +12,7 @@ namespace RedisCore.Internal
     {
         private readonly RedisClientConfig _config;
         private bool _disposed;
-        private readonly ConcurrentBag<Connection> _connections = new ConcurrentBag<Connection>();
+        private readonly ConcurrentBag<Connection> _connections = new();
         private readonly Task _maintainTask;
         private readonly CancellationTokenSource _maintainTaskCancellation = new CancellationTokenSource();
 
@@ -49,7 +49,7 @@ namespace RedisCore.Internal
                     socket.NoDelay = true;
                 await socket.ConnectAsync(endPoint);
 
-                Stream stream = null;
+                Stream? stream = null;
                 if (_config.UseSsl || _config.ForceUseNetworkStream)
                 {
                     stream = new NetworkStream(socket, false);
@@ -58,12 +58,12 @@ namespace RedisCore.Internal
                         try
                         {
                             var sslStream = new SslStream(new NetworkStream(socket, false));
-                            await sslStream.AuthenticateAsClientAsync(_config.HostName);
+                            await sslStream.AuthenticateAsClientAsync(_config.HostName!);
                             stream = sslStream;
                         }
                         catch
                         {
-                            stream.Dispose();
+                            await stream.DisposeAsync();
                             throw;
                         }
                     }
@@ -80,7 +80,7 @@ namespace RedisCore.Internal
 
         public async ValueTask<Connection> Acquire()
         {
-            Connection connection;
+            Connection? connection;
             while (_connections.TryTake(out connection))
             {
                 if (connection.Connected)
