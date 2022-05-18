@@ -7,7 +7,7 @@ namespace RedisCore.Internal
     internal class ScriptCache
     {
         private readonly RedisClient _client;
-        private readonly ConcurrentDictionary<string, string> _scripts = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> _scripts = new();
 
         public ScriptCache(RedisClient client) => _client = client;
 

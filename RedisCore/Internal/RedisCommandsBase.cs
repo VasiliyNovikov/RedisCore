@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using RedisCore.Internal.Commands;
 using RedisCore.Utils;
@@ -8,8 +9,7 @@ namespace RedisCore.Internal
 {
     public abstract class RedisCommandsBase : IRedisCommands, IRedisBufferCommands
     {
-        private protected abstract ScriptCache Scripts { get; }
-        private bool IsScriptCacheEnabled => Scripts != null;
+        private protected abstract ScriptCache? Scripts { get; }
 
         internal abstract ValueTask<T> Execute<T>(Command<T> command);
 
@@ -134,30 +134,26 @@ namespace RedisCore.Internal
 
         public async ValueTask<TResult> Eval<TResult>(string script, params string[] keys)
         {
-            if (IsScriptCacheEnabled)
-                script = await Scripts.Get(script);
-            return await Execute(EvalCommand<TResult>.Create(script, IsScriptCacheEnabled, keys));
+            var (cachedScript, isSHA) = await GetCachedScript(script);
+            return await Execute(EvalCommand<TResult>.Create(cachedScript, isSHA, keys));
         }
 
         public async ValueTask<TResult> Eval<T, TResult>(string script, T arg, params string[] keys)
         {
-            if (IsScriptCacheEnabled)
-                script = await Scripts.Get(script);
-            return await Execute(EvalCommand<TResult>.Create(script, IsScriptCacheEnabled, arg, keys));
+            var (cachedScript, isSHA) = await GetCachedScript(script);
+            return await Execute(EvalCommand<TResult>.Create(cachedScript, isSHA, arg, keys));
         }
 
         public async ValueTask<TResult> Eval<T1, T2, TResult>(string script, T1 arg1, T2 arg2, params string[] keys)
         {
-            if (IsScriptCacheEnabled)
-                script = await Scripts.Get(script);
-            return await Execute(EvalCommand<TResult>.Create(script, IsScriptCacheEnabled, arg1, arg2, keys));
+            var (cachedScript, isSHA) = await GetCachedScript(script);
+            return await Execute(EvalCommand<TResult>.Create(cachedScript, isSHA, arg1, arg2, keys));
         }
 
         public async ValueTask<TResult> Eval<T1, T2, T3, TResult>(string script, T1 arg1, T2 arg2, T3 arg3, params string[] keys)
         {
-            if (IsScriptCacheEnabled)
-                script = await Scripts.Get(script);
-            return await Execute(EvalCommand<TResult>.Create(script, IsScriptCacheEnabled, arg1, arg2, arg3, keys));
+            var (cachedScript, isSHA) = await GetCachedScript(script);
+            return await Execute(EvalCommand<TResult>.Create(cachedScript, isSHA, arg1, arg2, arg3, keys));
         }
 
         public async ValueTask ScriptFlush()
@@ -206,32 +202,37 @@ namespace RedisCore.Internal
 
         public async ValueTask<Memory<byte>?> Eval(IBufferPool<byte> bufferPool, string script, params string[] keys)
         {
-            if (IsScriptCacheEnabled)
-                script = await Scripts.Get(script);
-            return await Execute(EvalCommand<Optional<byte[]>>.Create(script, IsScriptCacheEnabled, keys), bufferPool);
+            var (cachedScript, isSHA) = await GetCachedScript(script);
+            return await Execute(EvalCommand<Optional<byte[]>>.Create(cachedScript, isSHA, keys), bufferPool);
         }
 
         public async ValueTask<Memory<byte>?> Eval<T>(IBufferPool<byte> bufferPool, string script, T arg, params string[] keys)
         {
-            if (IsScriptCacheEnabled)
-                script = await Scripts.Get(script);
-            return await Execute(EvalCommand<Optional<byte[]>>.Create(script, IsScriptCacheEnabled, arg, keys), bufferPool);
+            var (cachedScript, isSHA) = await GetCachedScript(script);
+            return await Execute(EvalCommand<Optional<byte[]>>.Create(cachedScript, isSHA, arg, keys), bufferPool);
         }
 
         public async ValueTask<Memory<byte>?> Eval<T1, T2>(IBufferPool<byte> bufferPool, string script, T1 arg1, T2 arg2, params string[] keys)
         {
-            if (IsScriptCacheEnabled)
-                script = await Scripts.Get(script);
-            return await Execute(EvalCommand<Optional<byte[]>>.Create(script, IsScriptCacheEnabled, arg1, arg2, keys), bufferPool);
+            var (cachedScript, isSHA) = await GetCachedScript(script);
+            return await Execute(EvalCommand<Optional<byte[]>>.Create(cachedScript, isSHA, arg1, arg2, keys), bufferPool);
         }
 
         public async ValueTask<Memory<byte>?> Eval<T1, T2, T3>(IBufferPool<byte> bufferPool, string script, T1 arg1, T2 arg2, T3 arg3, params string[] keys)
         {
-            if (IsScriptCacheEnabled)
-                script = await Scripts.Get(script);
-            return await Execute(EvalCommand<Optional<byte[]>>.Create(script, IsScriptCacheEnabled, arg1, arg2, arg3, keys), bufferPool);
+            var (cachedScript, isSHA) = await GetCachedScript(script);
+            return await Execute(EvalCommand<Optional<byte[]>>.Create(cachedScript, isSHA, arg1, arg2, arg3, keys), bufferPool);
         }
 
         #endregion IRedisBufferCommands
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private async ValueTask<(string Script, bool IsSHA)> GetCachedScript(string script)
+        {
+            var scripts = Scripts;
+            if (scripts != null)
+                script = await scripts.Get(script);
+            return (script, scripts != null);
+        }
     }
 }

@@ -12,9 +12,9 @@ namespace RedisCore.Internal
     {
         private readonly RedisClientConfig _config;
         private bool _disposed;
-        private readonly ConcurrentBag<Connection> _connections = new ConcurrentBag<Connection>();
+        private readonly ConcurrentBag<Connection> _connections = new();
         private readonly Task _maintainTask;
-        private readonly CancellationTokenSource _maintainTaskCancellation = new CancellationTokenSource();
+        private readonly CancellationTokenSource _maintainTaskCancellation = new();
 
         public ConnectionPool(RedisClientConfig config)
         {
@@ -41,7 +41,7 @@ namespace RedisCore.Internal
         private async ValueTask<Connection> Create()
         {
             var endPoint = _config.EndPoint;
-            var isUnixEndpoint = endPoint is UnixDomainSocketEndPoint;
+            var isUnixEndpoint = endPoint.AddressFamily == AddressFamily.Unix;
             var socket = new Socket(endPoint.AddressFamily, SocketType.Stream, isUnixEndpoint ? ProtocolType.Unspecified : ProtocolType.Tcp);
             try
             {
@@ -49,21 +49,21 @@ namespace RedisCore.Internal
                     socket.NoDelay = true;
                 await socket.ConnectAsync(endPoint);
 
-                Stream stream = null;
+                Stream? stream = null;
                 if (_config.UseSsl || _config.ForceUseNetworkStream)
                 {
-                    stream = new NetworkStream(socket, false);
+                    stream = new NetworkStream(socket);
                     if (_config.UseSsl)
                     {
                         try
                         {
-                            var sslStream = new SslStream(new NetworkStream(socket, false));
-                            await sslStream.AuthenticateAsClientAsync(_config.HostName);
+                            var sslStream = new SslStream(stream);
+                            await sslStream.AuthenticateAsClientAsync(_config.HostName!);
                             stream = sslStream;
                         }
                         catch
                         {
-                            stream.Dispose();
+                            await stream.DisposeAsync();
                             throw;
                         }
                     }
@@ -80,7 +80,7 @@ namespace RedisCore.Internal
 
         public async ValueTask<Connection> Acquire()
         {
-            Connection connection;
+            Connection? connection;
             while (_connections.TryTake(out connection))
             {
                 if (connection.Connected)

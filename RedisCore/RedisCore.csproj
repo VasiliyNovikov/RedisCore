@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net5.0;netcoreapp3.1;netcoreapp2.1;netstandard2.0;netstandard2.1</TargetFrameworks>
-    <DefineConstants Condition="'$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net5.0'">NETSTANDARD2_1</DefineConstants>
+    <TargetFrameworks>net6.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
-    <Version>0.2.11</Version>
+    <Version>0.2.12</Version>
     <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
     <Authors>Vasiliy Novikov</Authors>
     <Description>Light .NET Core Redis client</Description>
@@ -15,8 +14,9 @@
     <PackageTags>redis</PackageTags>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="5.0.0" />
+    <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
   </ItemGroup>
 </Project>

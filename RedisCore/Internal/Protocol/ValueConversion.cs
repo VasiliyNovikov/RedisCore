@@ -105,8 +105,8 @@ namespace RedisCore.Internal.Protocol
         
         static ValueConversion()
         {
-            Creator<string>.Implement(v => v == null ? (RedisValueObject)RedisNull.Value : new RedisCharString(v));
-            Creator<byte[]>.Implement(v => v == null ? (RedisValueObject)RedisNull.Value : new RedisByteString(v));
+            Creator<string?>.Implement(v => v == null ? RedisNull.Value : new RedisCharString(v));
+            Creator<byte[]?>.Implement(v => v == null ? RedisNull.Value : new RedisByteString(v));
             Creator<ReadOnlyMemory<byte>>.Implement(v => new RedisByteString(v));
             Creator<Memory<byte>>.Implement(v => new RedisByteString(v));
             void CreateStringWithUtf8<T>() where T : struct
@@ -123,12 +123,12 @@ namespace RedisCore.Internal.Protocol
             CreateStringWithUtf8<double>();
             CreateStringWithUtf8<Guid>();
             
-            Converter<RedisNull, string>.Implement(v => null);
-            Converter<RedisNull, byte[]>.Implement(v => null);
+            Converter<RedisNull, string?>.Implement(_ => null);
+            Converter<RedisNull, byte[]?>.Implement(_ => null);
 
             void ConvertNullable<T>() where T : struct
             {
-                Converter<RedisNull, T>.Implement(v => throw new ArgumentNullException(null, "Value is null"));
+                Converter<RedisNull, T>.Implement(_ => throw new ArgumentNullException(null, "Value is null"));
             }
             
             ConvertNullable<int>();
@@ -178,7 +178,7 @@ namespace RedisCore.Internal.Protocol
                 Creator<Optional<T>>.Instance = new Creator<Optional<T>>(value => value.HasValue ? create(value.Value) : RedisNull.Value);
                 if (typeof(T).IsValueType)
                 {
-                    var implementNullableMethod = typeof(Creator<T>).GetMethod(nameof(ImplementNullable), BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(typeof(T));
+                    var implementNullableMethod = typeof(Creator<T>).GetMethod(nameof(ImplementNullable), BindingFlags.Static | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(T));
                     implementNullableMethod.Invoke(null, new object[] {create});
                 }
             }
@@ -208,11 +208,11 @@ namespace RedisCore.Internal.Protocol
             {
                 Instance = new Converter<TValue, T>(convert);
                 Converter<TValue, Optional<T>>.Instance = typeof(TValue) == typeof(RedisNull)
-                    ? new Converter<TValue, Optional<T>>(value => Optional<T>.Unspecified)
+                    ? new Converter<TValue, Optional<T>>(_ => Optional<T>.Unspecified)
                     : new Converter<TValue, Optional<T>>(value => convert(value));
                 if (typeof(T).IsValueType)
                 {
-                    var implementNullableMethod = typeof(Converter<TValue, T>).GetMethod(nameof(ImplementNullable), BindingFlags.Static | BindingFlags.NonPublic)
+                    var implementNullableMethod = typeof(Converter<TValue, T>).GetMethod(nameof(ImplementNullable), BindingFlags.Static | BindingFlags.NonPublic)!
                                                                               .MakeGenericMethod(typeof(T));
                     implementNullableMethod.Invoke(null, new object[] {convert});
                 }
@@ -224,7 +224,7 @@ namespace RedisCore.Internal.Protocol
                 if (typeof(TValue) == typeof(RedisNull))
                 {
                     Converter<TValue, TN?>.Instance = new Converter<TValue, TN?>(_ => null);
-                    Converter<TValue, Optional<TN?>>.Instance = new Converter<TValue, Optional<TN?>>(value => Optional<TN?>.Unspecified);
+                    Converter<TValue, Optional<TN?>>.Instance = new Converter<TValue, Optional<TN?>>(_ => Optional<TN?>.Unspecified);
                 }
                 else
                 {
@@ -248,7 +248,7 @@ namespace RedisCore.Internal.Protocol
                 string methodName;
                 if (type.IsArray)
                 {
-                    elementType = type.GetElementType();
+                    elementType = type.GetElementType()!;
                     methodName = nameof(CreateArray);
                 }
                 else if (type.IsGenericType)
@@ -266,7 +266,7 @@ namespace RedisCore.Internal.Protocol
                 else
                     throw new NotSupportedException($"{type} is not supported collection type");
                 
-                var method = typeof(CollectionConverter<T>).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic)
+                var method = typeof(CollectionConverter<T>).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic)!
                                                            .MakeGenericMethod(elementType);
                 return new Converter<RedisArray, T>((Func<RedisArray, T>) Delegate.CreateDelegate(typeof(Func<RedisArray, T>), method));
             }
@@ -292,10 +292,10 @@ namespace RedisCore.Internal.Protocol
             private static HashSet<TItem> CreateSet<TItem>(RedisArray value)
             {
                 var items = value.Items;
-#if NETSTANDARD2_0
-                var result = new HashSet<TItem>();
-#else
+#if NETCOREAPP3_1_OR_GREATER
                 var result = new HashSet<TItem>(items.Count);
+#else
+                var result = new HashSet<TItem>();
 #endif
                 foreach (var item in items)
                     result.Add(item.To<TItem>());

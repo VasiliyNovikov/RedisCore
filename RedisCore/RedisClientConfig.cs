@@ -20,9 +20,9 @@ namespace RedisCore
 
         public bool UseSsl { get; }
 
-        public string HostName{ get; }
+        public string? HostName{ get; }
 
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         public int BufferSize { get; set; } = DefaultBufferSize;
 
@@ -59,15 +59,19 @@ namespace RedisCore
                 hostAddress = Dns.GetHostEntry(hostStr).AddressList[0];
             }
 
+            if (useSsl && HostName == null)
+                throw new ArgumentException("DNS hostname is required for SSL connection", nameof(address));
+
             EndPoint = new IPEndPoint(hostAddress, port);
         }
 
         public override string ToString()
         {
-            var schema = EndPoint is UnixDomainSocketEndPoint ? "unix" : (UseSsl ? "ssl" : "tcp");
+            var isUnixEndpoint = EndPoint.AddressFamily == AddressFamily.Unix;
+            var schema = isUnixEndpoint ? "unix" : (UseSsl ? "ssl" : "tcp");
             string address;
-            if (EndPoint is UnixDomainSocketEndPoint)
-                address = EndPoint.ToString();
+            if (isUnixEndpoint)
+                address = EndPoint.ToString()!;
             else
             {
                 var ipEndPoint = (IPEndPoint) EndPoint;

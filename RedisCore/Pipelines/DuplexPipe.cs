@@ -10,7 +10,7 @@ namespace RedisCore.Pipelines
         private readonly PipeWriter _inputBackend;
         private readonly PipeWriter _output;
         private readonly PipeReader _outputBackend;
-        private Task _populateTask;
+        private Task? _populateTask;
 
         protected int BufferSegmentSize { get; }
 
@@ -55,11 +55,11 @@ namespace RedisCore.Pipelines
             try
             {
                 await PopulateReader(_inputBackend);
-                _inputBackend.Complete();
+                await _inputBackend.CompleteAsync();
             }
             catch (Exception e)
             {
-                _inputBackend.Complete(e);
+                await _inputBackend.CompleteAsync(e);
             }
         }
         
@@ -68,19 +68,18 @@ namespace RedisCore.Pipelines
             try
             {
                 await PopulateWriter(_outputBackend);
-                _outputBackend.Complete();
+                await _outputBackend.CompleteAsync();
             }
             catch (Exception e)
             {
-                _outputBackend.Complete(e);
+                await _outputBackend.CompleteAsync(e);
             }
         }
 
         private void EnsureStartPopulating()
         {
-            if (_populateTask == null)
-                _populateTask = Task.WhenAll(PopulateReaderHandleErrors(),
-                                             PopulateWriterHandleErrors());
+            _populateTask ??= Task.WhenAll(PopulateReaderHandleErrors(),
+                                           PopulateWriterHandleErrors());
         }
     }
 }

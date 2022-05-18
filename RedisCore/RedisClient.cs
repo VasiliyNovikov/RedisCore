@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -18,7 +19,7 @@ namespace RedisCore
         private readonly ConnectionPool _connectionPool;
         private bool _disposed;
 
-        private protected override ScriptCache Scripts { get; }
+        private protected override ScriptCache? Scripts { get; }
 
         public RedisClient(RedisClientConfig config)
         {
@@ -65,12 +66,12 @@ namespace RedisCore
                 : @object;
         }
 
-        private static bool WrapException(Connection connection, Exception e, out RedisConnectionException redisException)
+        private static bool WrapException(Connection connection, Exception e, [MaybeNullWhen(false)] out RedisConnectionException redisException)
         {
             switch (e)
             {
                 case SocketException _:
-                case IOException io when io.InnerException is SocketException:
+                case IOException { InnerException: SocketException }:
                     redisException = new RedisConnectionException(e.Message, e);
                     return true;
                 case EndOfStreamException _:
@@ -78,7 +79,11 @@ namespace RedisCore
                     redisException = new RedisConnectionException(e.Message, e);
                     return true;
                 default:
+#if NETCOREAPP3_1_OR_GREATER
                     redisException = null;
+#else
+                    redisException = null!;
+#endif
                     return false;
             }
         }
@@ -142,7 +147,7 @@ namespace RedisCore
                 {
                     if (e.Type == KnownRedisErrors.NoScript)
                     {
-                        await Scripts.ReUploadAll();
+                        await Scripts!.ReUploadAll();
                         continue;
                     }
 
@@ -162,11 +167,9 @@ namespace RedisCore
 
         private async ValueTask<T> Execute<T>(Connection connection, Command<T> command)
         {
-            using (var bufferPool = CreateBufferPool())
-            {
-                var result = await Execute(connection, command.Data, bufferPool);
-                return command.GetResult(result);
-            }
+            using var bufferPool = CreateBufferPool();
+            var result = await Execute(connection, command.Data, bufferPool);
+            return command.GetResult(result);
         }
         
         private async ValueTask<Memory<byte>?> Execute<TCommand>(Connection connection, TCommand command, IBufferPool<byte> bufferPool)
@@ -218,10 +221,10 @@ namespace RedisCore
             private readonly RedisClient _client;
             private readonly IBufferPool<byte> _bufferPool;
             private bool _disposed;
-            private readonly List<string> _watchedKeys = new List<string>();
-            private readonly List<QueuedCommand> _queuedCommands = new List<QueuedCommand>();
+            private readonly List<string> _watchedKeys = new();
+            private readonly List<QueuedCommand> _queuedCommands = new();
 
-            private protected override ScriptCache Scripts => _client.Scripts;
+            private protected override ScriptCache? Scripts => _client.Scripts;
 
             public Transaction(RedisClient client)
             {
@@ -495,28 +498,26 @@ namespace RedisCore
                 where TExtractResult : struct, IExtractResult<T>
             {
                 CheckDisposed();
-                using (var bufferPool = _client.CreateBufferPool())
+                using var bufferPool = _client.CreateBufferPool();
+                while (true)
                 {
-                    while (true)
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    RedisObject result;
+                    try
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        RedisObject result;
-                        try
-                        {
-                            result = await ProtocolHandler.Read(_connection.Input, bufferPool, cancellationToken);
-                        }
-                        catch (Exception e)
-                        {
-                            if (WrapException(_connection, e, out var redisException))
-                                throw redisException;
-                            throw;
-                        }
-
-                        var resultArray = ((RedisArray) CheckError(result)).Items;
-                        if (((RedisValueObject) resultArray[0]).To<string>() == name)
-                            return extractResult.GetResult((RedisValueObject) resultArray[2]);
+                        result = await ProtocolHandler.Read(_connection.Input, bufferPool, cancellationToken);
                     }
+                    catch (Exception e)
+                    {
+                        if (WrapException(_connection, e, out var redisException))
+                            throw redisException;
+                        throw;
+                    }
+
+                    var resultArray = ((RedisArray) CheckError(result)).Items;
+                    if (((RedisValueObject) resultArray[0]).To<string>() == name)
+                        return extractResult.GetResult((RedisValueObject) resultArray[2]);
                 }
             }
 
@@ -544,13 +545,13 @@ namespace RedisCore
             {
                 public T GetResult(RedisValueObject value) => value.To<T>();
             }
-            
-            private struct ExtractBufferResult : IExtractResult<Memory<byte>>
+
+            private readonly struct ExtractBufferResult : IExtractResult<Memory<byte>>
             {
                 private readonly IBufferPool<byte> _bufferPool;
                 public ExtractBufferResult(IBufferPool<byte> bufferPool) => _bufferPool = bufferPool;
                 // ReSharper disable PossibleInvalidOperationException
-                public Memory<byte> GetResult(RedisValueObject value) => value.To(_bufferPool).Value;
+                public Memory<byte> GetResult(RedisValueObject value) => value.To(_bufferPool)!.Value;
                 // ReSharper restore PossibleInvalidOperationException
             }
         }

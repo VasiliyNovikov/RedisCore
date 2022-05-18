@@ -6,6 +6,6 @@
         {
         }
             
-        public static readonly RedisNull Value = new RedisNull();
+        public static readonly RedisNull Value = new();
     }
 }

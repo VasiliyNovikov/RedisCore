@@ -17,7 +17,7 @@ namespace RedisCore.Utils
 
         public Span<T> Span => new Span<T>(_buffer, 0, Length);
         
-        public ArraySegment<T> Segment => new ArraySegment<T>(_buffer, 0, Length);
+        public ArraySegment<T> Segment => new(_buffer, 0, Length);
 
         public RentedBuffer(int length)
         {
@@ -34,7 +34,7 @@ namespace RedisCore.Utils
         public void Dispose()
         {
             ArrayPool<T>.Shared.Return(_buffer);
-            _buffer = null;
+            _buffer = null!;
         }
 
         public IEnumerator<T> GetEnumerator()

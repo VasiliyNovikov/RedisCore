@@ -27,7 +27,7 @@ namespace RedisCore.Internal.Protocol
             Container<DateTimeOffset>.Value = 128;
             Container<TimeSpan>.Value = 128;
         }
-        
+
         private static class Container<T>
         {
             // ReSharper disable once StaticMemberInGenericType

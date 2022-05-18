@@ -10,7 +10,7 @@ namespace RedisCore.Internal
     internal class Connection : IDisposable, IAsyncDisposable
     {
         private readonly Socket _socket;
-        private readonly Stream _stream;
+        private readonly Stream? _stream;
         private readonly DuplexPipe _pipe;
         private bool _connected = true;
 
@@ -20,7 +20,7 @@ namespace RedisCore.Internal
         public PipeReader Input => _pipe.Input;
         public PipeWriter Output => _pipe.Output;
 
-        public Connection(Socket socket, Stream stream, int bufferSize)
+        public Connection(Socket socket, Stream? stream, int bufferSize)
         {
             _socket = socket;
             _stream = stream;

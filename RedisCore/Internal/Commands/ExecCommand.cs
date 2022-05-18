@@ -3,14 +3,14 @@ using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Internal.Commands
 {
-    internal class ExecCommand : Command<IReadOnlyList<RedisObject>>
+    internal class ExecCommand : Command<IReadOnlyList<RedisObject>?>
     {
         public ExecCommand()
             : base(CommandNames.Exec)
         {
         }
 
-        public override IReadOnlyList<RedisObject> GetResult(RedisObject resultObject)
+        public override IReadOnlyList<RedisObject>? GetResult(RedisObject resultObject)
         {
             return resultObject == RedisNull.Value 
                 ? null 

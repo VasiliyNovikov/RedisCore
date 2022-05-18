@@ -7,7 +7,7 @@ namespace RedisCore.Tests
     {
         public struct Result
         {
-            public Result(int exitCode, string standardOutput = null, string standardError = null)
+            public Result(int exitCode, string? standardOutput = null, string? standardError = null)
             {
                 ExitCode = exitCode;
                 StandardOutput = standardOutput;
@@ -15,11 +15,11 @@ namespace RedisCore.Tests
             }
 
             public int ExitCode { get; }
-            public string StandardOutput { get; }
-            public string StandardError { get; }
+            public string? StandardOutput { get; }
+            public string? StandardError { get; }
         }
         
-        public static async Task<Result> Command(string cmd, string args = "", bool captureStdOut = false, bool captureStdErr = false, string workingDirectory = null)
+        public static async Task<Result> Command(string cmd, string args = "", bool captureStdOut = false, bool captureStdErr = false, string? workingDirectory = null)
         {
             var process = new Process {
                 StartInfo =
@@ -31,7 +31,7 @@ namespace RedisCore.Tests
                 },
                 EnableRaisingEvents = true};
             var tcs = new TaskCompletionSource<bool>();
-            process.Exited += (s, a) => tcs.SetResult(true);
+            process.Exited += (_, _) => tcs.SetResult(true);
             process.Start();
             await tcs.Task;
             var stdOut = captureStdOut ? await process.StandardOutput.ReadToEndAsync() : null;
