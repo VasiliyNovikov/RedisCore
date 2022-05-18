@@ -6,7 +6,7 @@ namespace RedisCore
     public readonly struct Optional<T> : IEquatable<Optional<T>>
     {
         private static readonly IEqualityComparer<T> ValueComparer = EqualityComparer<T>.Default;
-        
+
         public static readonly Optional<T> Unspecified = default;
 
         public bool HasValue { get; }
@@ -27,18 +27,12 @@ namespace RedisCore
             return HasValue == other.HasValue && (!HasValue || ValueComparer.Equals(_value, other._value));
         }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is Optional<T> other && Equals(other);
-        }
+        public override bool Equals(object? obj) => obj is Optional<T> other && Equals(other);
 
-        public override int GetHashCode()
-        {
-            return HasValue ? 0 : ValueComparer.GetHashCode(_value!);
-        }
+        public override int GetHashCode() => HasValue ? _value?.GetHashCode() ?? 0 : 0;
 
         public static implicit operator Optional<T>(T value) => new(value);
-        
+
         public static explicit operator T(Optional<T> value) => value.Value;
 
         public static bool operator ==(Optional<T> a, Optional<T> b) => a.Equals(b);
