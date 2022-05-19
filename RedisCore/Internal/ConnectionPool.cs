@@ -53,7 +53,7 @@ namespace RedisCore.Internal
                 endPoint = new UnixDomainSocketEndPoint(uri.AbsolutePath);
                 isUnixEndpoint = true;
 #else
-                throw new PlatformNotSupportedException("Unix domain sockets are not supported by current runtime");
+                throw new PlatformNotSupportedException("Unix domain sockets are not supported by the runtime");
 #endif
             }
             else

@@ -30,7 +30,6 @@ namespace RedisCore.Tests
                             ForceUseNetworkStream = forceUseNetworkStream,
                             UseScriptCache = useScriptCache
                         };
-#if NETCOREAPP3_1_OR_GREATER
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                             yield return new RedisClientConfig("unix:///var/run/redis/redis.sock")
                             {
@@ -38,7 +37,6 @@ namespace RedisCore.Tests
                                 ForceUseNetworkStream = forceUseNetworkStream,
                                 UseScriptCache = useScriptCache
                             };
-#endif
                     }
                 }
             }

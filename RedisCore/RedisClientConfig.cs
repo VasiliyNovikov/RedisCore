@@ -31,6 +31,11 @@ namespace RedisCore
 
         public TimeSpan LoadingRetryTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
+        /// <param name="uri">Connection URI like:
+        /// tcp://127.0.0.1 or
+        /// ssl://some-azure-redis.redis.cache.windows.net or
+        /// unix:///var/run/redis/redis.sock
+        /// </param>
         public RedisClientConfig(Uri uri)
         {
             static void ThrowMalformedUri() => throw new ArgumentException("Malformed redis connection uri", nameof(uri));
@@ -58,6 +63,11 @@ namespace RedisCore
             Uri = uri;
         }
 
+        /// <param name="uri">Connection URI like:
+        /// tcp://127.0.0.1 or
+        /// ssl://some-azure-redis.redis.cache.windows.net or
+        /// unix:///var/run/redis/redis.sock
+        /// </param>
         public RedisClientConfig(string uri)
             : this(new Uri(uri))
         {
