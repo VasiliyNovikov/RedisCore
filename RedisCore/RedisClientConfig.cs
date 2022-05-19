@@ -16,7 +16,7 @@ namespace RedisCore
         public int BufferSize { get; set; } = DefaultBufferSize;
 
         public int MaxFreeConnections { get; set; } = DefaultMaxFreeConnections;
-        
+
         public TimeSpan ConnectionPoolMaintenanceInterval { get; set; } = DefaultConnectionPoolMaintenanceInterval;
 
         public bool ForceUseNetworkStream { get; set; }
