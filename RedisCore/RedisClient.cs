@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,8 +28,13 @@ namespace RedisCore
                 Scripts = new ScriptCache(this);
         }
 
-        public RedisClient(EndPoint endPoint)
-            : this(new RedisClientConfig(endPoint))
+        public RedisClient(Uri uri)
+            : this(new RedisClientConfig(uri))
+        {
+        }
+
+        public RedisClient(string uri)
+            : this(new RedisClientConfig(uri))
         {
         }
 

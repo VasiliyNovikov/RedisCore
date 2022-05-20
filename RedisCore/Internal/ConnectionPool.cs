@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
@@ -10,6 +11,9 @@ namespace RedisCore.Internal
 {
     internal class ConnectionPool : IDisposable, IAsyncDisposable
     {
+        private const int DefaultTcpPort = 6379;
+        private const int DefaultSslPort = 6380;
+
         private readonly RedisClientConfig _config;
         private bool _disposed;
         private readonly ConcurrentBag<Connection> _connections = new();
@@ -40,8 +44,30 @@ namespace RedisCore.Internal
 
         private async ValueTask<Connection> Create()
         {
-            var endPoint = _config.EndPoint;
-            var isUnixEndpoint = endPoint.AddressFamily == AddressFamily.Unix;
+            var uri = _config.Uri;
+            EndPoint endPoint;
+            bool isUnixEndpoint;
+            if (_config.Uri.Scheme == RedisUriSchema.Unix)
+            {
+#if NETCOREAPP3_1_OR_GREATER
+                endPoint = new UnixDomainSocketEndPoint(uri.AbsolutePath);
+                isUnixEndpoint = true;
+#else
+                throw new PlatformNotSupportedException("Unix domain sockets are not supported by the runtime");
+#endif
+            }
+            else
+            {
+                var address = uri.HostNameType == UriHostNameType.Dns 
+                    ? (await Dns.GetHostEntryAsync(uri.DnsSafeHost)).AddressList[0]
+                    : IPAddress.Parse(uri.DnsSafeHost);
+                var port = uri.IsDefaultPort
+                    ? uri.Scheme == RedisUriSchema.Tcp ? DefaultTcpPort : DefaultSslPort
+                    : uri.Port;
+                endPoint = new IPEndPoint(address, port);
+                isUnixEndpoint = false;
+            }
+
             var socket = new Socket(endPoint.AddressFamily, SocketType.Stream, isUnixEndpoint ? ProtocolType.Unspecified : ProtocolType.Tcp);
             try
             {
@@ -50,15 +76,15 @@ namespace RedisCore.Internal
                 await socket.ConnectAsync(endPoint);
 
                 Stream? stream = null;
-                if (_config.UseSsl || _config.ForceUseNetworkStream)
+                if (uri.Scheme == RedisUriSchema.Ssl || _config.ForceUseNetworkStream)
                 {
                     stream = new NetworkStream(socket);
-                    if (_config.UseSsl)
+                    if (uri.Scheme == RedisUriSchema.Ssl)
                     {
                         try
                         {
                             var sslStream = new SslStream(stream);
-                            await sslStream.AuthenticateAsClientAsync(_config.HostName!);
+                            await sslStream.AuthenticateAsClientAsync(uri.DnsSafeHost);
                             stream = sslStream;
                         }
                         catch

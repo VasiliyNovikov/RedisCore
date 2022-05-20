@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -25,21 +24,19 @@ namespace RedisCore.Tests
                 {
                     foreach (var forceUseNetworkStream in new[] {false, true})
                     {
-                        yield return new RedisClientConfig(LocalRedisAddress)
+                        yield return new RedisClientConfig($"tcp://{LocalRedisAddress}")
                         {
                             BufferSize = bufferSize,
                             ForceUseNetworkStream = forceUseNetworkStream,
                             UseScriptCache = useScriptCache
                         };
-#if NETCOREAPP3_1_OR_GREATER
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                            yield return new RedisClientConfig(new UnixDomainSocketEndPoint("/var/run/redis/redis.sock"))
+                            yield return new RedisClientConfig("unix:///var/run/redis/redis.sock")
                             {
                                 BufferSize = bufferSize,
                                 ForceUseNetworkStream = forceUseNetworkStream,
                                 UseScriptCache = useScriptCache
                             };
-#endif
                     }
                 }
             }
@@ -62,7 +59,7 @@ namespace RedisCore.Tests
 
             foreach (var useScriptCache in addScriptCache ? new[] {false, true} : new [] {false})
                 foreach (var bufferSize in BufferSizes)
-                    yield return new RedisClientConfig(host, true) {Password = password, BufferSize = bufferSize, UseScriptCache = useScriptCache};
+                    yield return new RedisClientConfig($"ssl://{host}") {Password = password, BufferSize = bufferSize, UseScriptCache = useScriptCache};
         }
 
         protected static IEnumerable<object[]> Local_Test_Endpoints_Data() => LocalTestConfigs().Select(cfg => new object[] {cfg});
