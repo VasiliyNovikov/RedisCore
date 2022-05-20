@@ -53,7 +53,7 @@ namespace RedisCore
                         throw new ArgumentException("DNS hostname is required for SSL connection", nameof(uri));
                     break;
                 case RedisUriSchema.Unix:
-                    if (uri.Host != "" || uri.Query != "" || uri.AbsolutePath == "/" || !uri.IsDefaultPort)
+                    if (uri.Host != "" || uri.AbsolutePath == "/" || !uri.IsDefaultPort)
                         ThrowMalformedUri();
                     break;
                 default:
