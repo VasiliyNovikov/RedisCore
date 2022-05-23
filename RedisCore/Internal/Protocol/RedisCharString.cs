@@ -1,22 +1,21 @@
-﻿namespace RedisCore.Internal.Protocol
+﻿namespace RedisCore.Internal.Protocol;
+
+internal sealed class RedisCharString : RedisString
 {
-    internal sealed class RedisCharString : RedisString
+    private int _byteLength = -1;
+    public override int ByteLength
     {
-        private int _byteLength = -1;
-        public override int ByteLength
+        get
         {
-            get
-            {
-                if (_byteLength < 0)
-                    _byteLength = ProtocolHandler.Encoding.GetByteCount(Value);
-                return _byteLength;
-            }
+            if (_byteLength < 0)
+                _byteLength = ProtocolHandler.Encoding.GetByteCount(Value);
+            return _byteLength;
         }
-
-        public string Value { get; }
-
-        public RedisCharString(string value) => Value = value;
-
-        public override string ToString() => Value;
     }
+
+    public string Value { get; }
+
+    public RedisCharString(string value) => Value = value;
+
+    public override string ToString() => Value;
 }

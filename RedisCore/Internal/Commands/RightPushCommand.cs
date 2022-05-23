@@ -1,10 +1,9 @@
-﻿namespace RedisCore.Internal.Commands
+﻿namespace RedisCore.Internal.Commands;
+
+internal class RightPushCommand<T> : PushCommand<T>
 {
-    internal class RightPushCommand<T> : PushCommand<T>
+    public RightPushCommand(string key, T value) 
+        : base(CommandNames.RPush, key, value)
     {
-        public RightPushCommand(string key, T value) 
-            : base(CommandNames.RPush, key, value)
-        {
-        }
     }
 }

@@ -1,12 +1,11 @@
 ﻿using RedisCore.Internal.Protocol;
 
-namespace RedisCore.Internal.Commands
+namespace RedisCore.Internal.Commands;
+
+internal class PublishCommand<T> : Command<int>
 {
-    internal class PublishCommand<T> : Command<int>
+    public PublishCommand(string channel, T message) 
+        : base(CommandNames.Publish, channel.ToValue(), message.ToValue())
     {
-        public PublishCommand(string channel, T message) 
-            : base(CommandNames.Publish, channel.ToValue(), message.ToValue())
-        {
-        }
     }
 }

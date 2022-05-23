@@ -1,6 +1,5 @@
-﻿namespace RedisCore.Internal.Protocol
+﻿namespace RedisCore.Internal.Protocol;
+
+internal abstract class RedisObject
 {
-    internal abstract class RedisObject
-    {
-    }
 }

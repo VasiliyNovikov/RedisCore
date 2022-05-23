@@ -1,10 +1,9 @@
-namespace RedisCore.Internal.Commands
+namespace RedisCore.Internal.Commands;
+
+internal class ScriptFlushCommand : Command<string>
 {
-    internal class ScriptFlushCommand : Command<string>
+    public ScriptFlushCommand() 
+        : base(CommandNames.Script, CommandNames.Flush)
     {
-        public ScriptFlushCommand() 
-            : base(CommandNames.Script, CommandNames.Flush)
-        {
-        }
     }
 }

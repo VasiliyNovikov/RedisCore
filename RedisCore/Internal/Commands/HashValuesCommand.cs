@@ -1,12 +1,11 @@
 ﻿using RedisCore.Internal.Protocol;
 
-namespace RedisCore.Internal.Commands
+namespace RedisCore.Internal.Commands;
+
+internal class HashValuesCommand<T> : Command<T[]>
 {
-    internal class HashValuesCommand<T> : Command<T[]>
+    public HashValuesCommand(string key) 
+        : base(CommandNames.HVals, key.ToValue())
     {
-        public HashValuesCommand(string key) 
-            : base(CommandNames.HVals, key.ToValue())
-        {
-        }
     }
 }

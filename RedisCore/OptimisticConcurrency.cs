@@ -1,9 +1,8 @@
-namespace RedisCore
+namespace RedisCore;
+
+public enum OptimisticConcurrency
 {
-    public enum OptimisticConcurrency
-    {
-        None,
-        IfNotExists,
-        IfExists
-    }
+    None,
+    IfNotExists,
+    IfExists
 }

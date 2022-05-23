@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace RedisCore
+namespace RedisCore;
+
+public interface IRedisTransaction : IRedisCommands, IDisposable
 {
-    public interface IRedisTransaction : IRedisCommands, IDisposable
-    {
-        void Watch(string key);
-        ValueTask<bool> Complete();
-    }
+    void Watch(string key);
+    ValueTask<bool> Complete();
 }

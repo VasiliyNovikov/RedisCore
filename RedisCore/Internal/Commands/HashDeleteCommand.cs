@@ -1,12 +1,11 @@
 ﻿using RedisCore.Internal.Protocol;
 
-namespace RedisCore.Internal.Commands
+namespace RedisCore.Internal.Commands;
+
+internal class HashDeleteCommand : Command<bool>
 {
-    internal class HashDeleteCommand : Command<bool>
+    public HashDeleteCommand(string key, string field) 
+        : base(CommandNames.HDel, key.ToValue(), field.ToValue())
     {
-        public HashDeleteCommand(string key, string field) 
-            : base(CommandNames.HDel, key.ToValue(), field.ToValue())
-        {
-        }
     }
 }

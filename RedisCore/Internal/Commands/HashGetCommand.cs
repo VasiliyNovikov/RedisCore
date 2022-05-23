@@ -1,12 +1,11 @@
 ﻿using RedisCore.Internal.Protocol;
 
-namespace RedisCore.Internal.Commands
+namespace RedisCore.Internal.Commands;
+
+internal class HashGetCommand<T> : OptionalValueCommand<T>
 {
-    internal class HashGetCommand<T> : OptionalValueCommand<T>
+    public HashGetCommand(string key, string field) : 
+        base(CommandNames.HGet, key.ToValue(), field.ToValue())
     {
-        public HashGetCommand(string key, string field) : 
-            base(CommandNames.HGet, key.ToValue(), field.ToValue())
-        {
-        }
     }
 }
