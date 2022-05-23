@@ -1,12 +1,11 @@
 ﻿using RedisCore.Internal.Protocol;
 
-namespace RedisCore.Internal.Commands
+namespace RedisCore.Internal.Commands;
+
+internal class DeleteCommand : Command<bool>
 {
-    internal class DeleteCommand : Command<bool>
+    public DeleteCommand(string key) 
+        : base(CommandNames.Del, key.ToValue())
     {
-        public DeleteCommand(string key) 
-            : base(CommandNames.Del, key.ToValue())
-        {
-        }
     }
 }

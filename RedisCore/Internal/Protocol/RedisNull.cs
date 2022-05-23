@@ -1,11 +1,10 @@
-﻿namespace RedisCore.Internal.Protocol
+﻿namespace RedisCore.Internal.Protocol;
+
+internal sealed class RedisNull : RedisValueObject
 {
-    internal sealed class RedisNull : RedisValueObject
+    private RedisNull()
     {
-        private RedisNull()
-        {
-        }
-            
-        public static readonly RedisNull Value = new();
     }
+            
+    public static readonly RedisNull Value = new();
 }

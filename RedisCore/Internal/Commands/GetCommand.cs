@@ -1,10 +1,9 @@
-﻿namespace RedisCore.Internal.Commands
+﻿namespace RedisCore.Internal.Commands;
+
+internal class GetCommand<T> : GetValueByKeyCommand<T>
 {
-    internal class GetCommand<T> : GetValueByKeyCommand<T>
+    public GetCommand(string key) 
+        : base(CommandNames.Get, key)
     {
-        public GetCommand(string key) 
-            : base(CommandNames.Get, key)
-        {
-        }
     }
 }

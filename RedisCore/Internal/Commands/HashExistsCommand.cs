@@ -1,12 +1,11 @@
 ﻿using RedisCore.Internal.Protocol;
 
-namespace RedisCore.Internal.Commands
+namespace RedisCore.Internal.Commands;
+
+internal class HashExistsCommand : Command<bool>
 {
-    internal class HashExistsCommand : Command<bool>
+    public HashExistsCommand(string key, string field) 
+        : base(CommandNames.HExists, key.ToValue(), field.ToValue())
     {
-        public HashExistsCommand(string key, string field) 
-            : base(CommandNames.HExists, key.ToValue(), field.ToValue())
-        {
-        }
     }
 }

@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace RedisCore.Internal.Protocol
+namespace RedisCore.Internal.Protocol;
+
+public class ProtocolException : Exception
 {
-    public class ProtocolException : Exception
+    public ProtocolException(string message)
+        : base(message)
     {
-        public ProtocolException(string message)
-            : base(message)
-        {
-        }
     }
 }

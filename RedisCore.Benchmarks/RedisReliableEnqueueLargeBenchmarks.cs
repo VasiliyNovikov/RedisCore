@@ -1,7 +1,6 @@
-namespace RedisCore.Benchmarks
+namespace RedisCore.Benchmarks;
+
+public class RedisReliableEnqueueLargeBenchmarks : RedisReliableEnqueueBenchmarks
 {
-    public class RedisReliableEnqueueLargeBenchmarks : RedisReliableEnqueueBenchmarks
-    {
-        protected override int ValueLength => 128 * 1024;
-    }
+    protected override int ValueLength => 128 * 1024;
 }

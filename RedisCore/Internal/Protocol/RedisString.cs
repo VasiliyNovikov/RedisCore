@@ -1,7 +1,6 @@
-﻿namespace RedisCore.Internal.Protocol
+﻿namespace RedisCore.Internal.Protocol;
+
+internal abstract class RedisString : RedisValueObject
 {
-    internal abstract class RedisString : RedisValueObject
-    {
-        public abstract int ByteLength { get; }
-    }
+    public abstract int ByteLength { get; }
 }
