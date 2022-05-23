@@ -15,7 +15,12 @@ public static class BufferPool
 
     public static IBufferPool<T> Create<T>() => new Implementation<T>();
 
-    public static Memory<T> RentMemory<T>(this IBufferPool<T> bufferPool, int length) => bufferPool.Rent(length).AsMemory(0, length);
+    public static Memory<T> RentMemory<T>(this IBufferPool<T> bufferPool, int length)
+    {
+        return bufferPool == null
+            ? throw new ArgumentNullException(nameof(bufferPool))
+            : bufferPool.Rent(length).AsMemory(0, length);
+    }
 
     private class Implementation<T> : IBufferPool<T>
     {
@@ -64,7 +69,7 @@ public static class BufferPool
 
     private class EmptyImplementation<T> : IBufferPool<T>
     {
-        public static readonly EmptyImplementation<T> Instance = new EmptyImplementation<T>();
+        public static readonly EmptyImplementation<T> Instance = new();
 
         public T[] Rent(int minimumLength) => new T[minimumLength];
 

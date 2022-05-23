@@ -2,7 +2,7 @@
 
 internal class RightPopCommand<T> : GetValueByKeyCommand<T>
 {
-    public RightPopCommand(string key) 
+    public RightPopCommand(string key)
         : base(CommandNames.RPop, key)
     {
     }

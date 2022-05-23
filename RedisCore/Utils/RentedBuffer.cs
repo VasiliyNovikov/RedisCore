@@ -2,10 +2,12 @@
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace RedisCore.Utils;
 
+[SuppressMessage("Microsoft.Performance", "CA1815: Override equals and operator equals on value types", Justification = "This type has reference type semantics")]
 public struct RentedBuffer<T> : IEnumerable<T>, IDisposable
     where T : struct
 {
@@ -13,10 +15,10 @@ public struct RentedBuffer<T> : IEnumerable<T>, IDisposable
 
     public int Length { get; }
 
-    public Memory<T> Memory => new Memory<T>(_buffer, 0, Length);
+    public Memory<T> Memory => new(_buffer, 0, Length);
 
-    public Span<T> Span => new Span<T>(_buffer, 0, Length);
-        
+    public Span<T> Span => new(_buffer, 0, Length);
+
     public ArraySegment<T> Segment => new(_buffer, 0, Length);
 
     public RentedBuffer(int length)
@@ -24,12 +26,6 @@ public struct RentedBuffer<T> : IEnumerable<T>, IDisposable
         Length = length;
         _buffer = ArrayPool<T>.Shared.Rent(length);
     }
-
-    public static implicit operator Memory<T>(in RentedBuffer<T> buffer) => buffer.Memory;
-
-    public static implicit operator Span<T>(in RentedBuffer<T> buffer) => buffer.Span;
-
-    public static explicit operator ArraySegment<T>(in RentedBuffer<T> buffer) => buffer.Segment;
 
     public void Dispose()
     {

@@ -38,9 +38,12 @@ public class RedisClientConfig
     /// </param>
     public RedisClientConfig(Uri uri)
     {
+        if (uri == null)
+            throw new ArgumentNullException(nameof(uri));
+
         static void ThrowMalformedUri() => throw new ArgumentException("Malformed redis connection uri", nameof(uri));
 
-        if (uri.Query != "") 
+        if (uri.Query.Length > 0)
             ThrowMalformedUri();
 
         switch (uri.Scheme)
@@ -53,7 +56,7 @@ public class RedisClientConfig
                     throw new ArgumentException("DNS hostname is required for SSL connection", nameof(uri));
                 break;
             case RedisUriSchema.Unix:
-                if (uri.Host != "" || uri.AbsolutePath == "/" || !uri.IsDefaultPort)
+                if (uri.Host.Length > 0 || uri.AbsolutePath == "/" || !uri.IsDefaultPort)
                     ThrowMalformedUri();
                 break;
             default:
@@ -77,12 +80,12 @@ public class RedisClientConfig
     {
         var featureBuilder = new StringBuilder();
         if (BufferSize != DefaultBufferSize)
-            featureBuilder.Append($"bufferSize={BufferSize}");
+            featureBuilder.Append(FormattableString.Invariant($"bufferSize={BufferSize}"));
         if (MaxFreeConnections != DefaultMaxFreeConnections)
         {
             if (featureBuilder.Length > 0)
                 featureBuilder.Append(", ");
-            featureBuilder.Append($"maxFreeConnections={MaxFreeConnections}");
+            featureBuilder.Append(FormattableString.Invariant($"maxFreeConnections={MaxFreeConnections}"));
         }
         if (ForceUseNetworkStream)
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Threading.Tasks;
 
@@ -50,35 +51,39 @@ public abstract class DuplexPipe : IDuplexPipe
     protected abstract Task PopulateReader(PipeWriter readerBackend);
     protected abstract Task PopulateWriter(PipeReader writerBackend);
 
+    [SuppressMessage("Microsoft.Design", "CA1031: Do not catch general exception types",
+                     Justification = "False positive. Exception is asynchronously rethrown")]
     private async Task PopulateReaderHandleErrors()
     {
         try
         {
-            await PopulateReader(_inputBackend);
-            await _inputBackend.CompleteAsync();
+            await PopulateReader(_inputBackend).ConfigureAwait(false);
+            await _inputBackend.CompleteAsync().ConfigureAwait(false);
         }
         catch (Exception e)
         {
-            await _inputBackend.CompleteAsync(e);
+            await _inputBackend.CompleteAsync(e).ConfigureAwait(false);
         }
     }
-        
+
+    [SuppressMessage("Microsoft.Design", "CA1031: Do not catch general exception types",
+                     Justification = "False positive. Exception is asynchronously rethrown")]
     private async Task PopulateWriterHandleErrors()
     {
         try
         {
-            await PopulateWriter(_outputBackend);
-            await _outputBackend.CompleteAsync();
+            await PopulateWriter(_outputBackend).ConfigureAwait(false);
+            await _outputBackend.CompleteAsync().ConfigureAwait(false);
         }
         catch (Exception e)
         {
-            await _outputBackend.CompleteAsync(e);
+            await _outputBackend.CompleteAsync(e).ConfigureAwait(false);
         }
     }
 
     private void EnsureStartPopulating()
     {
         _populateTask ??= Task.WhenAll(PopulateReaderHandleErrors(),
-            PopulateWriterHandleErrors());
+                                       PopulateWriterHandleErrors());
     }
 }

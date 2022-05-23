@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Reflection;
 using RedisCore.Utils;
 
@@ -32,66 +34,49 @@ internal static class ValueConversion
         return CollectionConverter<T>.Invoke(value);
     }
 
-    public static T To<T>(this RedisObject value)
-    {
-        switch (value)
+    public static T To<T>(this RedisObject value) =>
+        value switch
         {
-            case RedisValueObject valueValue:
-                return valueValue.To<T>();
-            case RedisArray arrayValue:
-                return arrayValue.To<T>();
-            default:
-                throw new NotImplementedException();
-        }
-    }
+            RedisValueObject valueValue => valueValue.To<T>(),
+            RedisArray arrayValue => arrayValue.To<T>(),
+            _ => throw new NotImplementedException()
+        };
 
-    public static T To<T>(this RedisValueObject value)
-    {
-        switch (value)
+    public static T To<T>(this RedisValueObject value) =>
+        value switch
         {
-            case RedisInteger intValue:
-                return intValue.To<T>();
-            case RedisNull nullValue:
-                return nullValue.To<T>();
-            case RedisByteString byteValue:
-                return byteValue.To<T>();
-            case RedisCharString charValue:
-                return charValue.To<T>();
-            default:
-                throw new NotImplementedException();
-        }
-    }
+            RedisInteger intValue => intValue.To<T>(),
+            RedisNull nullValue => nullValue.To<T>(),
+            RedisByteString byteValue => byteValue.To<T>(),
+            RedisCharString charValue => charValue.To<T>(),
+            _ => throw new NotImplementedException()
+        };
 
-    public static T To<T>(this RedisString value)
-    {
-        switch (value)
+    public static T To<T>(this RedisString value) =>
+        value switch
         {
-            case RedisByteString byteValue:
-                return byteValue.To<T>();
-            case RedisCharString charValue:
-                return charValue.To<T>();
-            default:
-                throw new NotImplementedException();
-        }
-    }
+            RedisByteString byteValue => byteValue.To<T>(),
+            RedisCharString charValue => charValue.To<T>(),
+            _ => throw new NotImplementedException()
+        };
 
     public static Memory<byte>? To(this RedisObject value, IBufferPool<byte> bufferPool)
     {
         switch (value)
         {
             case RedisByteString byteValue:
-            {
-                var result = bufferPool.RentMemory(byteValue.ByteLength);
-                byteValue.Value.CopyTo(result);
-                return result;
-            }
+                {
+                    var result = bufferPool.RentMemory(byteValue.ByteLength);
+                    byteValue.Value.CopyTo(result);
+                    return result;
+                }
             case RedisCharString charValue:
-            {
-                var result = bufferPool.RentMemory(charValue.ByteLength);
-                ProtocolHandler.Encoding.GetBytes(charValue.Value, result.Span);
-                return result;
-            }
-            case RedisNull _:
+                {
+                    var result = bufferPool.RentMemory(charValue.ByteLength);
+                    ProtocolHandler.Encoding.GetBytes(charValue.Value, result.Span);
+                    return result;
+                }
+            case RedisNull:
                 return null;
             default:
                 throw new NotImplementedException();
@@ -102,7 +87,7 @@ internal static class ValueConversion
     {
         return Creator<T>.Invoke(value);
     }
-        
+
     static ValueConversion()
     {
         Creator<string?>.Implement(v => v == null ? RedisNull.Value : new RedisCharString(v));
@@ -122,15 +107,16 @@ internal static class ValueConversion
         CreateStringWithUtf8<long>();
         CreateStringWithUtf8<double>();
         CreateStringWithUtf8<Guid>();
-            
+
         Converter<RedisNull, string?>.Implement(_ => null);
         Converter<RedisNull, byte[]?>.Implement(_ => null);
 
+        [SuppressMessage("Microsoft.Design", "CA1065: Do not raise exceptions in unexpected locations", Justification = "By design")]
         void ConvertNullable<T>() where T : struct
         {
             Converter<RedisNull, T>.Implement(_ => throw new ArgumentNullException(null, "Value is null"));
         }
-            
+
         ConvertNullable<int>();
         ConvertNullable<long>();
         ConvertNullable<double>();
@@ -139,6 +125,7 @@ internal static class ValueConversion
 
         Converter<RedisByteString, string>.Implement(v => v.ToString());
         Converter<RedisByteString, byte[]>.Implement(v => v.Value.ToArray());
+        [SuppressMessage("Microsoft.Design", "CA1065: Do not raise exceptions in unexpected locations", Justification = "By design")]
         void ConvertStringWithUtf8<T>()
         {
             Converter<RedisByteString, T>.Implement(v => Utf8Converter.TryParse(v.Value.Span, out T result, out var bytesRead) && bytesRead == v.Value.Length
@@ -150,12 +137,12 @@ internal static class ValueConversion
         ConvertStringWithUtf8<double>();
         ConvertStringWithUtf8<Guid>();
         Converter<RedisByteString, bool>.Implement(v => v.To<int>() != 0);
-            
+
         Converter<RedisCharString, string>.Implement(v => v.Value);
         Converter<RedisCharString, byte[]>.Implement(v => ProtocolHandler.Encoding.GetBytes(v.Value));
-        Converter<RedisCharString, int>.Implement(v => Int32.Parse(v.Value));
-        Converter<RedisCharString, long>.Implement(v => Int64.Parse(v.Value));
-        Converter<RedisCharString, double>.Implement(v => Double.Parse(v.Value));
+        Converter<RedisCharString, int>.Implement(v => Int32.Parse(v.Value, CultureInfo.InvariantCulture));
+        Converter<RedisCharString, long>.Implement(v => Int64.Parse(v.Value, CultureInfo.InvariantCulture));
+        Converter<RedisCharString, double>.Implement(v => Double.Parse(v.Value, CultureInfo.InvariantCulture));
         Converter<RedisCharString, Guid>.Implement(v => Guid.Parse(v.Value));
         Converter<RedisCharString, bool>.Implement(v => v.To<int>() != 0);
 
@@ -165,7 +152,7 @@ internal static class ValueConversion
         Converter<RedisInteger, double>.Implement(v => v.Value);
         Converter<RedisInteger, bool>.Implement(v => v.Value != 0);
     }
-        
+
     private class Creator<T> : Functionality<Creator<T>, T>
     {
         private readonly Func<T, RedisValueObject> _create;
@@ -179,7 +166,7 @@ internal static class ValueConversion
             if (typeof(T).IsValueType)
             {
                 var implementNullableMethod = typeof(Creator<T>).GetMethod(nameof(ImplementNullable), BindingFlags.Static | BindingFlags.NonPublic)!.MakeGenericMethod(typeof(T));
-                implementNullableMethod.Invoke(null, new object[] {create});
+                implementNullableMethod.Invoke(null, new object[] { create });
             }
         }
 
@@ -194,7 +181,7 @@ internal static class ValueConversion
             return Instance._create(value);
         }
     }
-        
+
     private class Converter<TValue, T> : Functionality<Converter<TValue, T>, T>
         where TValue : RedisObject
     {
@@ -214,7 +201,7 @@ internal static class ValueConversion
             {
                 var implementNullableMethod = typeof(Converter<TValue, T>).GetMethod(nameof(ImplementNullable), BindingFlags.Static | BindingFlags.NonPublic)!
                     .MakeGenericMethod(typeof(T));
-                implementNullableMethod.Invoke(null, new object[] {convert});
+                implementNullableMethod.Invoke(null, new object[] { convert });
             }
         }
 
@@ -239,6 +226,7 @@ internal static class ValueConversion
         }
     }
 
+    [SuppressMessage("Microsoft.Performance", "CA1812: Avoid uninstantiated internal classes", Justification = "This class is instantiated dynamically")]
     private class CollectionConverter<T> : DynamicFunctionality<CollectionConverter<T>, Converter<RedisArray, T>, T>
     {
         protected override Converter<RedisArray, T> CreateInstance()
@@ -253,6 +241,7 @@ internal static class ValueConversion
             }
             else if (type.IsGenericType)
             {
+#pragma warning disable IDE0045 // Use conditional expression for assignment
                 elementType = type.GetGenericArguments()[0];
                 if (type.IsAssignableFrom(elementType.MakeArrayType()))
                     methodName = nameof(CreateArray);
@@ -262,20 +251,21 @@ internal static class ValueConversion
                     methodName = nameof(CreateSet);
                 else
                     throw new NotSupportedException($"{type} is not supported collection type");
+#pragma warning restore IDE0045
             }
             else
                 throw new NotSupportedException($"{type} is not supported collection type");
-                
+
             var method = typeof(CollectionConverter<T>).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic)!
                 .MakeGenericMethod(elementType);
-            return new Converter<RedisArray, T>((Func<RedisArray, T>) Delegate.CreateDelegate(typeof(Func<RedisArray, T>), method));
+            return new Converter<RedisArray, T>((Func<RedisArray, T>)Delegate.CreateDelegate(typeof(Func<RedisArray, T>), method));
         }
 
         private static TItem[] CreateArray<TItem>(RedisArray value)
         {
             var items = value.Items;
             var result = new TItem[items.Count];
-            for (var i = 0; i < items.Count; ++i) 
+            for (var i = 0; i < items.Count; ++i)
                 result[i] = items[i].To<TItem>();
             return result;
         }
@@ -288,14 +278,14 @@ internal static class ValueConversion
                 result.Add(item.To<TItem>());
             return result;
         }
-            
+
         private static HashSet<TItem> CreateSet<TItem>(RedisArray value)
         {
             var items = value.Items;
 #if NETCOREAPP3_1_OR_GREATER
             var result = new HashSet<TItem>(items.Count);
 #else
-                var result = new HashSet<TItem>();
+            var result = new HashSet<TItem>();
 #endif
             foreach (var item in items)
                 result.Add(item.To<TItem>());

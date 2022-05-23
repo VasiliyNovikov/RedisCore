@@ -32,9 +32,9 @@ internal class ConnectionPool : IDisposable, IAsyncDisposable
         {
             while (!_disposed)
             {
-                await Task.Delay(_config.ConnectionPoolMaintenanceInterval, _maintainTaskCancellation.Token);
+                await Task.Delay(_config.ConnectionPoolMaintenanceInterval, _maintainTaskCancellation.Token).ConfigureAwait(false);
                 while (_connections.Count > _config.MaxFreeConnections && _connections.TryTake(out var connection))
-                    await connection.DisposeAsync();
+                    await connection.DisposeAsync().ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException)
@@ -53,13 +53,13 @@ internal class ConnectionPool : IDisposable, IAsyncDisposable
             endPoint = new UnixDomainSocketEndPoint(uri.AbsolutePath);
             isUnixEndpoint = true;
 #else
-                throw new PlatformNotSupportedException("Unix domain sockets are not supported by the runtime");
+            throw new PlatformNotSupportedException("Unix domain sockets are not supported by the runtime");
 #endif
         }
         else
         {
-            var address = uri.HostNameType == UriHostNameType.Dns 
-                ? (await Dns.GetHostEntryAsync(uri.DnsSafeHost)).AddressList[0]
+            var address = uri.HostNameType == UriHostNameType.Dns
+                ? (await Dns.GetHostEntryAsync(uri.DnsSafeHost).ConfigureAwait(false)).AddressList[0]
                 : IPAddress.Parse(uri.DnsSafeHost);
             var port = uri.IsDefaultPort
                 ? uri.Scheme == RedisUriSchema.Tcp ? DefaultTcpPort : DefaultSslPort
@@ -73,7 +73,7 @@ internal class ConnectionPool : IDisposable, IAsyncDisposable
         {
             if (!isUnixEndpoint)
                 socket.NoDelay = true;
-            await socket.ConnectAsync(endPoint);
+            await socket.ConnectAsync(endPoint).ConfigureAwait(false);
 
             Stream? stream = null;
             if (uri.Scheme == RedisUriSchema.Ssl || _config.ForceUseNetworkStream)
@@ -84,12 +84,12 @@ internal class ConnectionPool : IDisposable, IAsyncDisposable
                     try
                     {
                         var sslStream = new SslStream(stream);
-                        await sslStream.AuthenticateAsClientAsync(uri.DnsSafeHost);
+                        await sslStream.AuthenticateAsClientAsync(uri.DnsSafeHost).ConfigureAwait(false);
                         stream = sslStream;
                     }
                     catch
                     {
-                        await stream.DisposeAsync();
+                        await stream.DisposeAsync().ConfigureAwait(false);
                         throw;
                     }
                 }
@@ -111,15 +111,15 @@ internal class ConnectionPool : IDisposable, IAsyncDisposable
         {
             if (connection.Connected)
                 return connection;
-            await connection.DisposeAsync();
+            await connection.DisposeAsync().ConfigureAwait(false);
         }
 
         while (true)
         {
-            connection = await Create();
+            connection = await Create().ConfigureAwait(false);
             if (connection.Connected)
                 return connection;
-            await connection.DisposeAsync();
+            await connection.DisposeAsync().ConfigureAwait(false);
         }
     }
 
@@ -130,7 +130,7 @@ internal class ConnectionPool : IDisposable, IAsyncDisposable
             connection.Dispose();
             return;
         }
-            
+
         _connections.Add(connection);
     }
 
@@ -155,9 +155,9 @@ internal class ConnectionPool : IDisposable, IAsyncDisposable
 
         _disposed = true;
         _maintainTaskCancellation.Cancel();
-        await _maintainTask;
+        await _maintainTask.ConfigureAwait(false);
         foreach (var connection in _connections)
-            await connection.DisposeAsync();
+            await connection.DisposeAsync().ConfigureAwait(false);
         _connections.Clear();
         _maintainTaskCancellation.Dispose();
     }

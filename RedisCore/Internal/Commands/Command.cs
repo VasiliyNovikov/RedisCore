@@ -14,7 +14,7 @@ internal abstract class Command
             : new RedisArray(args.Prepend(name));
     }
 }
-    
+
 internal abstract class Command<T> : Command
 {
     protected Command(RedisString name, params RedisObject[] args)

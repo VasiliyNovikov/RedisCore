@@ -2,7 +2,7 @@
 
 internal class MultiCommand : VoidCommand
 {
-    public MultiCommand() 
+    public MultiCommand()
         : base(CommandNames.Multi)
     {
     }

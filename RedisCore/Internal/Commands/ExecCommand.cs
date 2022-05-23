@@ -12,8 +12,8 @@ internal class ExecCommand : Command<IReadOnlyList<RedisObject>?>
 
     public override IReadOnlyList<RedisObject>? GetResult(RedisObject resultObject)
     {
-        return resultObject == RedisNull.Value 
-            ? null 
-            : ((RedisArray) resultObject).Items;
+        return resultObject == RedisNull.Value
+            ? null
+            : ((RedisArray)resultObject).Items;
     }
 }

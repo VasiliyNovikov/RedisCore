@@ -1,0 +1,22 @@
+# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+###############################
+# Core EditorConfig Options   #
+###############################
+# All files
+[*]
+indent_style = space
+end_of_line = lf
+
+[*.cs]
+dotnet_diagnostic.CA1014.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1014
+dotnet_diagnostic.IDE0008.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0007-ide0008
+dotnet_diagnostic.IDE0011.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0011
+dotnet_diagnostic.IDE0021.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0021
+dotnet_diagnostic.IDE0022.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0022
+dotnet_diagnostic.IDE0023.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0023
+dotnet_diagnostic.IDE0024.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0024
+dotnet_diagnostic.IDE0058.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0058
+dotnet_diagnostic.IDE0061.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0061
+dotnet_analyzer_diagnostic.category-Style.severity = warning
+csharp_style_namespace_declarations = file_scoped
+csharp_style_prefer_range_operator = false

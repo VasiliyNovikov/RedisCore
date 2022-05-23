@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace RedisCore;
 
+[SuppressMessage("Microsoft.Naming", "CA1716: Identifiers should not match keywords", Justification = "Applicable to VB.NET only"),
+ SuppressMessage("Microsoft.Usage", "CA2225: Operator overloads have named alternates",
+                 Justification = "Conversion operators have the same semantics as in Nullable<T>")]
 public readonly struct Optional<T> : IEquatable<Optional<T>>
 {
     private static readonly IEqualityComparer<T> ValueComparer = EqualityComparer<T>.Default;
 
-    public static readonly Optional<T> Unspecified = default;
+    public static readonly Optional<T> Unspecified;
 
     public bool HasValue { get; }
 

@@ -22,7 +22,7 @@ public static class Utf8Converter
             maxSize = (int)source.Length;
 
         using var buffer = new RentedBuffer<byte>(maxSize);
-        source.CopyTo(buffer);
+        source.CopyTo(buffer.Span);
         return TryParse(buffer.Span, out value, out bytesConsumed, standardFormat);
     }
 
@@ -30,7 +30,7 @@ public static class Utf8Converter
     {
         return FormatFunctionality<T>.Invoke(value, destination, out bytesWritten, format);
     }
-        
+
     static Utf8Converter()
     {
         ParseFunctionality<int>.Implement(Utf8Parser.TryParse);
@@ -48,7 +48,7 @@ public static class Utf8Converter
         ParseFunctionality<DateTime>.Implement(Utf8Parser.TryParse);
         ParseFunctionality<DateTimeOffset>.Implement(Utf8Parser.TryParse);
         ParseFunctionality<TimeSpan>.Implement(Utf8Parser.TryParse);
-            
+
         FormatFunctionality<int>.Implement(Utf8Formatter.TryFormat);
         FormatFunctionality<uint>.Implement(Utf8Formatter.TryFormat);
         FormatFunctionality<long>.Implement(Utf8Formatter.TryFormat);
@@ -65,10 +65,10 @@ public static class Utf8Converter
         FormatFunctionality<DateTimeOffset>.Implement(Utf8Formatter.TryFormat);
         FormatFunctionality<TimeSpan>.Implement(Utf8Formatter.TryFormat);
     }
-        
+
     private delegate bool TryParseDelegate<T>(ReadOnlySpan<byte> source, out T value, out int bytesConsumed, char standardFormat);
     private delegate bool TryFormatDelegate<in T>(T value, Span<byte> destination, out int bytesWritten, StandardFormat format);
-        
+
     private class ParseFunctionality<T> : Functionality<ParseFunctionality<T>, T>
     {
         private readonly TryParseDelegate<T> _parser;
@@ -88,7 +88,7 @@ public static class Utf8Converter
             Instance = new ParseFunctionality<T>(parser);
         }
     }
-        
+
     private class FormatFunctionality<T> : Functionality<FormatFunctionality<T>, T>
     {
         private readonly TryFormatDelegate<T> _formatter;

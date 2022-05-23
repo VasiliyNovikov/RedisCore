@@ -24,10 +24,9 @@ internal class Connection : IDisposable, IAsyncDisposable
     {
         _socket = socket;
         _stream = stream;
-        if (stream == null)
-            _pipe = new SocketPipe(socket, bufferSize / 2, bufferSize, bufferSize / 2);
-        else
-            _pipe = new StreamPipe(stream, bufferSize / 2, bufferSize, bufferSize / 2);
+        _pipe = stream == null
+            ? new SocketPipe(socket, bufferSize / 2, bufferSize, bufferSize / 2)
+            : new StreamPipe(stream, bufferSize / 2, bufferSize, bufferSize / 2);
     }
 
     public void Dispose()
@@ -39,7 +38,7 @@ internal class Connection : IDisposable, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         if (_stream != null)
-            await _stream.DisposeAsync();
+            await _stream.DisposeAsync().ConfigureAwait(false);
         _socket.Dispose();
     }
 

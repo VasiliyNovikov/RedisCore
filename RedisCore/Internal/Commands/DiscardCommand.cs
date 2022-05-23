@@ -2,7 +2,7 @@
 
 internal class DiscardCommand : VoidCommand
 {
-    public DiscardCommand() 
+    public DiscardCommand()
         : base(CommandNames.Discard)
     {
     }
