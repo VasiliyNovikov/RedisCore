@@ -1,11 +1,5 @@
-# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
-###############################
-# Core EditorConfig Options   #
-###############################
-# All files
 [*]
 indent_style = space
-# end_of_line = lf
 
 [*.cs]
 dotnet_diagnostic.CA1014.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1014

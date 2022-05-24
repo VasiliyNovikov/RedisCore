@@ -25,10 +25,12 @@ public class PipeTests
         {
             throw new TestException();
         }
+#pragma warning disable CA1031 // Do not catch general exception types - false positive - exception is asynchronously rethrown
         catch (Exception e)
         {
-            pipe.Writer.Complete(e);
+            await pipe.Writer.CompleteAsync(e);
         }
+#pragma warning restore CA1031
 
         await Assert.ThrowsExceptionAsync<TestException>(async () => await pipe.Reader.ReadAsync());
         await Assert.ThrowsExceptionAsync<TestException>(async () => await pipe.Reader.ReadAsync());
@@ -46,10 +48,12 @@ public class PipeTests
         {
             throw new TestException();
         }
+#pragma warning disable CA1031 // Do not catch general exception types - false positive - exception is asynchronously rethrown
         catch (Exception e)
         {
-            pipe.Reader.Complete(e);
+            await pipe.Reader.CompleteAsync(e);
         }
+#pragma warning restore CA1031
 
         testData.AsSpan().CopyTo(pipe.Writer.GetSpan(testData.Length));
         pipe.Writer.Advance(testData.Length);
@@ -72,7 +76,7 @@ public class PipeTests
     public async Task Pipe_Async_Write_Cancel_ReadWithCancel_Read_Test()
     {
         var pipe = new Pipe();
-        var cancellationSource = new CancellationTokenSource();
+        using var cancellationSource = new CancellationTokenSource();
 
         async void Producer()
         {

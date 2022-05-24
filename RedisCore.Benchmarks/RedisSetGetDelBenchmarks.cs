@@ -8,7 +8,7 @@ namespace RedisCore.Benchmarks;
 public class RedisSetGetDelBenchmarks : RedisBenchmarks
 {
     private readonly byte[] _value;
-        
+
     protected virtual int ValueLength => 512;
 
     public RedisSetGetDelBenchmarks()
@@ -16,53 +16,53 @@ public class RedisSetGetDelBenchmarks : RedisBenchmarks
         _value = new byte[ValueLength];
         new Random().NextBytes(_value);
     }
-        
+
     [Benchmark]
     public Task Tcp_OfficialClient_Set_Get_Del()
     {
-        return Client_Set_Get_Del(TcpOfficialClient); 
+        return Client_Set_Get_Del(TcpOfficialClient);
     }
 
     [Benchmark]
     public Task Unix_OfficialClient_Set_Get_Del()
     {
-        return Client_Set_Get_Del(UnixOfficialClient); 
+        return Client_Set_Get_Del(UnixOfficialClient);
     }
 
     [Benchmark]
     public Task Tcp_Client_Set_Get_Del()
     {
-        return Client_Set_Get_Del(TcpClient); 
+        return Client_Set_Get_Del(TcpClient);
     }
 
     [Benchmark]
     public Task Tcp_Client_Streamed_Set_Get_Del()
     {
-        return Client_Set_Get_Del(TcpClientStreamed); 
+        return Client_Set_Get_Del(TcpClientStreamed);
     }
 
     [Benchmark]
     public Task Tcp_Client_NoBufferPool_Set_Get_Del()
     {
-        return Client_Set_Get_Del(TcpClientNoBufferPool); 
+        return Client_Set_Get_Del(TcpClientNoBufferPool);
     }
 
     [Benchmark]
     public Task Unix_Client_Set_Get_Del()
     {
-        return Client_Set_Get_Del(UnixClient); 
+        return Client_Set_Get_Del(UnixClient);
     }
 
     [Benchmark]
     public Task Unix_Client_Streamed_Set_Get_Del()
     {
-        return Client_Set_Get_Del(UnixClientStreamed); 
+        return Client_Set_Get_Del(UnixClientStreamed);
     }
 
     [Benchmark]
     public Task Unix_Client_NoBufferPool_Set_Get_Del()
     {
-        return Client_Set_Get_Del(UnixClientNoBufferPool); 
+        return Client_Set_Get_Del(UnixClientNoBufferPool);
     }
 
     private async Task Client_Set_Get_Del(IDatabase client)

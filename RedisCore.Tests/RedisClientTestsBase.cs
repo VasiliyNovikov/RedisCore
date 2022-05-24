@@ -14,15 +14,15 @@ public class RedisClientTestsBase
 
     private static string LocalRedisAddress => Environment.GetEnvironmentVariable("LOCAL_REDIS_ADDRESS") ?? "127.0.0.1";
 
-    private static readonly int[] BufferSizes = {64, 256, 65536};
+    private static readonly int[] BufferSizes = { 64, 256, 65536 };
 
     private static IEnumerable<RedisClientConfig> LocalTestConfigs(bool addScriptCache = false)
     {
-        foreach (var useScriptCache in addScriptCache ? new[] {false, true} : new [] {false})
+        foreach (var useScriptCache in addScriptCache ? new[] { false, true } : new[] { false })
         {
             foreach (var bufferSize in BufferSizes)
             {
-                foreach (var forceUseNetworkStream in new[] {false, true})
+                foreach (var forceUseNetworkStream in new[] { false, true })
                 {
                     yield return new RedisClientConfig($"tcp://{LocalRedisAddress}")
                     {
@@ -57,13 +57,13 @@ public class RedisClientTestsBase
         Assert.IsNotNull(host, "Host is missing");
         Assert.IsNotNull(password, "Password is missing");
 
-        foreach (var useScriptCache in addScriptCache ? new[] {false, true} : new [] {false})
-        foreach (var bufferSize in BufferSizes)
-            yield return new RedisClientConfig($"ssl://{host}") {Password = password, BufferSize = bufferSize, UseScriptCache = useScriptCache};
+        foreach (var useScriptCache in addScriptCache ? new[] { false, true } : new[] { false })
+            foreach (var bufferSize in BufferSizes)
+                yield return new RedisClientConfig($"ssl://{host}") { Password = password, BufferSize = bufferSize, UseScriptCache = useScriptCache };
     }
 
-    protected static IEnumerable<object[]> Local_Test_Endpoints_Data() => LocalTestConfigs().Select(cfg => new object[] {cfg});
-    protected static IEnumerable<object[]> Test_Endpoints_Data() => TestConfigs().Select(cfg => new object[] {cfg});
+    protected static IEnumerable<object[]> Local_Test_Endpoints_Data() => LocalTestConfigs().Select(cfg => new object[] { cfg });
+    protected static IEnumerable<object[]> Test_Endpoints_Data() => TestConfigs().Select(cfg => new object[] { cfg });
 
     protected static string UniqueString() => Guid.NewGuid().ToString();
 

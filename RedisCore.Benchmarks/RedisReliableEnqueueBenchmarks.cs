@@ -6,10 +6,10 @@ namespace RedisCore.Benchmarks;
 
 public class RedisReliableEnqueueBenchmarks : RedisBenchmarks
 {
-    private static readonly TimeSpan BufferExpiration = TimeSpan.FromSeconds(4); 
+    private static readonly TimeSpan BufferExpiration = TimeSpan.FromSeconds(4);
 
     private readonly byte[] _value;
-        
+
     protected virtual int ValueLength => 512;
 
     private RedisClient _client = null!;
@@ -26,53 +26,53 @@ public class RedisReliableEnqueueBenchmarks : RedisBenchmarks
     public Task Tcp_Client_Reliable_Enqueue_Script()
     {
         _client = TcpClient;
-        return Reliable_Enqueue_Script(); 
+        return Reliable_Enqueue_Script();
     }
 
     [Benchmark]
     public Task Unix_Client_Reliable_Enqueue_Script()
     {
         _client = UnixClient;
-        return Reliable_Enqueue_Script(); 
+        return Reliable_Enqueue_Script();
     }
 
     [Benchmark]
     public Task Tcp_Client_Reliable_Enqueue_Script_Cache()
     {
         _client = TcpClientScriptCache;
-        return Reliable_Enqueue_Script(); 
+        return Reliable_Enqueue_Script();
     }
 
     [Benchmark]
     public Task Unix_Client_Reliable_Enqueue_Script_Cache()
     {
         _client = UnixClientScriptCache;
-        return Reliable_Enqueue_Script(); 
+        return Reliable_Enqueue_Script();
     }
 
     [Benchmark]
     public Task Tcp_Client_Reliable_Enqueue_Tran()
     {
         _client = TcpClient;
-        return Reliable_Enqueue_Tran(); 
+        return Reliable_Enqueue_Tran();
     }
 
     [Benchmark]
     public Task Unix_Client_Reliable_Enqueue_Tran()
     {
         _client = UnixClient;
-        return Reliable_Enqueue_Tran(); 
+        return Reliable_Enqueue_Tran();
     }
 
     private async Task Reliable_Enqueue_Script()
     {
-        const string moveScript = 
-            @"local data = redis.call('GET', KEYS[1])
+        const string moveScript =
+@"local data = redis.call('GET', KEYS[1])
 if data then
     redis.call('LPUSH', KEYS[2], data)
     redis.call('DEL', KEYS[1])
 end
-return 0"; 
+return 0";
         _buffer = Guid.NewGuid().ToString();
         _queue = Guid.NewGuid().ToString();
         try

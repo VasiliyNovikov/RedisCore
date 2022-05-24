@@ -22,7 +22,7 @@ public class RedisPingBenchmarks : RedisBenchmarks
     {
         await TcpClient.Ping();
     }
-        
+
     [Benchmark]
     public async Task Unix_Client_Ping()
     {

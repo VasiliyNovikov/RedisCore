@@ -1,0 +1,7 @@
+[*{Tests,TestsBase}.cs]
+dotnet_diagnostic.CA1032.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1032
+dotnet_diagnostic.CA1064.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1064
+dotnet_diagnostic.CA1707.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1707
+dotnet_diagnostic.CA1822.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1822
+dotnet_diagnostic.CA2007.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
+dotnet_diagnostic.CA5394.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca5394
