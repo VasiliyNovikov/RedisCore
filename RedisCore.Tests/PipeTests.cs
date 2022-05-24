@@ -78,7 +78,7 @@ public class PipeTests
         var pipe = new Pipe();
         using var cancellationSource = new CancellationTokenSource();
 
-        async void Producer()
+        async Task Producer()
         {
             await Task.Yield(); // Context switching is needed to repro the issue
 
@@ -91,7 +91,7 @@ public class PipeTests
             cancellationSource.Cancel(); // Cancel have to be called right after flush to repro the issue
         }
 
-        Producer();
+        var producerTask = Producer();
         try
         {
             await pipe.Reader.ReadAsync(cancellationSource.Token);
@@ -100,5 +100,6 @@ public class PipeTests
         {
             await pipe.Reader.ReadAsync();
         }
+        await producerTask;
     }
 }
