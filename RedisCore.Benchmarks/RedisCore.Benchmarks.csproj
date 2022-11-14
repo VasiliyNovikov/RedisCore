@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="../RedisCore.targets"/>
+  <Import Project="../RedisCore.targets" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
