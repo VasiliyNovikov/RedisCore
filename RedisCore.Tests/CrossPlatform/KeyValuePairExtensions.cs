@@ -1,17 +1,15 @@
-﻿#if !NETCOREAPP3_1_OR_GREATER
-using System.Collections.Generic;
+﻿#if !NET6_0_OR_GREATER
 using System.ComponentModel;
 
-namespace RedisCore.Tests
+namespace System.Collections.Generic;
+
+public static class KeyValuePairExtensions
 {
-    public static class KeyValuePairExtensions
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static void Deconstruct<TKey, TValue>(this in KeyValuePair<TKey, TValue> keyValuePair, out TKey key, out TValue value)
     {
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static void Deconstruct<TKey, TValue>(this in KeyValuePair<TKey, TValue> keyValuePair, out TKey key, out TValue value)
-        {
-            key = keyValuePair.Key;
-            value = keyValuePair.Value;
-        }
+        key = keyValuePair.Key;
+        value = keyValuePair.Value;
     }
 }
 #endif

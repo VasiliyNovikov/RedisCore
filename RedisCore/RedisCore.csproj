@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../RedisCore.targets"/>
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
-    <LangVersion>latest</LangVersion>
-    <Version>0.2.13</Version>
+    <TargetFrameworks>net7.0;net6.0;netstandard2.0</TargetFrameworks>
+    <Version>0.2.14</Version>
     <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
     <Authors>Vasiliy Novikov</Authors>
     <Description>Light .NET Core Redis client</Description>
@@ -14,9 +14,8 @@
     <PackageTags>redis</PackageTags>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
+    <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 </Project>

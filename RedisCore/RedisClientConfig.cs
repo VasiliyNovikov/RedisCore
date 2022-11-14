@@ -77,12 +77,12 @@ public class RedisClientConfig
     {
         var featureBuilder = new StringBuilder();
         if (BufferSize != DefaultBufferSize)
-            featureBuilder.Append($"bufferSize={BufferSize}");
+            featureBuilder.Append(FormattableString.Invariant($"bufferSize={BufferSize}"));
         if (MaxFreeConnections != DefaultMaxFreeConnections)
         {
             if (featureBuilder.Length > 0)
                 featureBuilder.Append(", ");
-            featureBuilder.Append($"maxFreeConnections={MaxFreeConnections}");
+            featureBuilder.Append(FormattableString.Invariant($"maxFreeConnections={MaxFreeConnections}"));
         }
         if (ForceUseNetworkStream)
         {

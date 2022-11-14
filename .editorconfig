@@ -1,0 +1,10 @@
+[*]
+indent_style = space
+
+[*.cs]
+dotnet_diagnostic.CA1716.severity = none  # https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1716
+csharp_style_namespace_declarations = file_scoped
+
+[*{Tests,TestsBase,Benchmarks}.cs]
+dotnet_diagnostic.CA1707.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1707
+dotnet_diagnostic.CA1822.severity = none  # https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1822

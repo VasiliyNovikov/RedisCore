@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using RedisCore.Utils;
 
@@ -153,9 +155,9 @@ internal static class ValueConversion
             
         Converter<RedisCharString, string>.Implement(v => v.Value);
         Converter<RedisCharString, byte[]>.Implement(v => ProtocolHandler.Encoding.GetBytes(v.Value));
-        Converter<RedisCharString, int>.Implement(v => Int32.Parse(v.Value));
-        Converter<RedisCharString, long>.Implement(v => Int64.Parse(v.Value));
-        Converter<RedisCharString, double>.Implement(v => Double.Parse(v.Value));
+        Converter<RedisCharString, int>.Implement(v => Int32.Parse(v.Value, CultureInfo.InvariantCulture));
+        Converter<RedisCharString, long>.Implement(v => Int64.Parse(v.Value, CultureInfo.InvariantCulture));
+        Converter<RedisCharString, double>.Implement(v => Double.Parse(v.Value, CultureInfo.InvariantCulture));
         Converter<RedisCharString, Guid>.Implement(v => Guid.Parse(v.Value));
         Converter<RedisCharString, bool>.Implement(v => v.To<int>() != 0);
 

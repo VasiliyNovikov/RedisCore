@@ -1,4 +1,6 @@
-﻿namespace RedisCore.Internal.Protocol;
+﻿using System.Globalization;
+
+namespace RedisCore.Internal.Protocol;
 
 internal sealed class RedisInteger : RedisValueObject
 {
@@ -6,5 +8,5 @@ internal sealed class RedisInteger : RedisValueObject
 
     public RedisInteger(long value) => Value = value;
 
-    public override string ToString() => Value.ToString();
+    public override string ToString() => Value.ToString(CultureInfo.InvariantCulture);
 }

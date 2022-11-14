@@ -7,7 +7,7 @@ public readonly struct Optional<T> : IEquatable<Optional<T>>
 {
     private static readonly IEqualityComparer<T> ValueComparer = EqualityComparer<T>.Default;
 
-    public static readonly Optional<T> Unspecified = default;
+    public static readonly Optional<T> Unspecified;
 
     public bool HasValue { get; }
 

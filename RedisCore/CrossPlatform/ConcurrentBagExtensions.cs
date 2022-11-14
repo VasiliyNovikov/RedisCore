@@ -1,15 +1,12 @@
-﻿#if !NETCOREAPP3_1_OR_GREATER
-using System.Collections.Concurrent;
+﻿#if !NET6_0_OR_GREATER
+namespace System.Collections.Concurrent;
 
-namespace RedisCore
+public static class ConcurrentBagExtensions
 {
-    public static class ConcurrentBagExtensions
+    public static void Clear<T>(this ConcurrentBag<T> collection)
     {
-        public static void Clear<T>(this ConcurrentBag<T> collection)
+        while (collection.TryTake(out _))
         {
-            while (collection.TryTake(out _))
-            {
-            }
         }
     }
 }
