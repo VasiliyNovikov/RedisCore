@@ -1,11 +1,10 @@
-﻿#if !NETCOREAPP3_1_OR_GREATER
+﻿#if !NET6_0_OR_GREATER
 using System.Threading.Tasks;
 
-namespace System
+namespace System;
+
+public interface IAsyncDisposable
 {
-    public interface IAsyncDisposable
-    {
-        ValueTask DisposeAsync();
-    }
+    ValueTask DisposeAsync();
 }
 #endif

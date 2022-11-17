@@ -44,6 +44,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
             return;
         _disposed = true;
         _connectionPool.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     public async ValueTask DisposeAsync()
@@ -52,6 +53,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
             return;
         _disposed = true;
         await _connectionPool.DisposeAsync();
+        GC.SuppressFinalize(this);
     }
 
     #region Private members

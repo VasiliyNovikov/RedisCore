@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace RedisCore.Utils;
 
+[SuppressMessage("Microsoft.Design", "CA1000: Do not declare static members on generic types", Justification = "Done on purpose")]
 public class Functionality<TFunctionality, T> where TFunctionality : Functionality<TFunctionality, T>
 {
     private static TFunctionality? _instance;

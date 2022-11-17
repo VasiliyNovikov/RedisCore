@@ -126,6 +126,8 @@ internal static class ProtocolHandler
         while (true)
         {
             var readResult = await reader.ReadAsync(cancellationToken);
+            // From this point we must read the content till the end otherwise we can't return socket to the pool 
+            cancellationToken = CancellationToken.None;
             var buffer = readResult.Buffer;
             var newLinePosition = FindNewLine(buffer);
             if (newLinePosition == null)
@@ -171,7 +173,7 @@ internal static class ProtocolHandler
                     var totalBytesRead = 0;
                     while (totalBytesRead < strBuffer.Length)
                     {
-                        readResult = await reader.ReadAsync();
+                        readResult = await reader.ReadAsync(cancellationToken);
                         buffer = readResult.Buffer;
                         var bytesRead = (int)buffer.Length;
                         if (bytesRead == 0)
@@ -206,7 +208,7 @@ internal static class ProtocolHandler
                         return RedisNull.Value;
                     var items = new List<RedisObject>(length);
                     for (var i = 0; i < length; ++i)
-                        items.Add(await Read(reader, bufferPool));
+                        items.Add(await Read(reader, bufferPool, cancellationToken));
                     return new RedisArray(items);
                 }
                 case '-':

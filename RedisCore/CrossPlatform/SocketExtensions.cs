@@ -1,34 +1,31 @@
-#if !NETCOREAPP3_1_OR_GREATER
-using System;
-using System.Net.Sockets;
+#if !NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using RedisCore.Utils;
 
-namespace RedisCore
+namespace System.Net.Sockets;
+
+public static class SocketExtensions
 {
-    public static class SocketExtensions
+    public static async ValueTask<int> ReceiveAsync(this Socket socket, Memory<byte> buffer, SocketFlags socketFlags)
     {
-        public static async ValueTask<int> ReceiveAsync(this Socket socket, Memory<byte> buffer, SocketFlags socketFlags)
-        {
-            if (MemoryMarshal.TryGetArray((ReadOnlyMemory<byte>)buffer, out var segment))
-                return await SocketTaskExtensions.ReceiveAsync(socket, segment, socketFlags);
+        if (MemoryMarshal.TryGetArray((ReadOnlyMemory<byte>)buffer, out var segment))
+            return await SocketTaskExtensions.ReceiveAsync(socket, segment, socketFlags);
 
-            using var rentedBuffer = new RentedBuffer<byte>(buffer.Length);
-            var result = await SocketTaskExtensions.ReceiveAsync(socket, rentedBuffer.Segment, socketFlags);
-            rentedBuffer.Memory.CopyTo(buffer);
-            return result;
-        }
+        using var rentedBuffer = new RentedBuffer<byte>(buffer.Length);
+        var result = await SocketTaskExtensions.ReceiveAsync(socket, rentedBuffer.Segment, socketFlags);
+        rentedBuffer.Memory.CopyTo(buffer);
+        return result;
+    }
 
-        public static async ValueTask<int> SendAsync(this Socket socket, ReadOnlyMemory<byte> buffer, SocketFlags socketFlags)
-        {
-            if (MemoryMarshal.TryGetArray(buffer, out var segment))
-                return await SocketTaskExtensions.SendAsync(socket, segment, socketFlags);
+    public static async ValueTask<int> SendAsync(this Socket socket, ReadOnlyMemory<byte> buffer, SocketFlags socketFlags)
+    {
+        if (MemoryMarshal.TryGetArray(buffer, out var segment))
+            return await SocketTaskExtensions.SendAsync(socket, segment, socketFlags);
 
-            using var rentedBuffer = new RentedBuffer<byte>(buffer.Length);
-            buffer.CopyTo(rentedBuffer);
-            return await SocketTaskExtensions.SendAsync(socket, rentedBuffer.Segment, socketFlags);
-        }
+        using var rentedBuffer = new RentedBuffer<byte>(buffer.Length);
+        buffer.CopyTo(rentedBuffer);
+        return await SocketTaskExtensions.SendAsync(socket, rentedBuffer.Segment, socketFlags);
     }
 }
 #endif

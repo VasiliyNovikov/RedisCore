@@ -46,14 +46,12 @@ public static class MonotonicTime
 
             return new TimeSpan((time.tv_sec * NanosecondsPerSecond + time.tv_nsec + NanosecondsPerTick / 2) / NanosecondsPerTick);
         }
-        
-// ReSharper disable InconsistentNaming
-// ReSharper disable IdentifierTypo
+
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters
         private enum clockid_t
         {
             CLOCK_MONOTONIC_RAW = 4
         }
-
 
         [StructLayout(LayoutKind.Sequential)]
         private struct timespec
@@ -61,10 +59,9 @@ public static class MonotonicTime
             public readonly long tv_sec;
             public readonly long tv_nsec;
         }
-        
+#pragma warning restore CS8981
+
         [DllImport("libc.so.6", SetLastError = true)]
         private static extern int clock_gettime(clockid_t clk_id, out timespec tp);
-// ReSharper restore IdentifierTypo
-// ReSharper restore InconsistentNaming
     }
 }
