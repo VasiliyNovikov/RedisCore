@@ -569,7 +569,7 @@ return 0";
 
     [TestMethod]
     [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
-    [ExpectedException(typeof(RedisClientConfig))]
+    [ExpectedException(typeof(RedisClientException))]
     public async Task RedisClient_Database_Failure_Test(RedisClientConfig config)
     {
         config.Database = 100000;
