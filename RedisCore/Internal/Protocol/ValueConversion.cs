@@ -168,7 +168,7 @@ internal static class ValueConversion
         Converter<RedisInteger, bool>.Implement(v => v.Value != 0);
     }
         
-    private class Creator<T> : Functionality<Creator<T>, T>
+    private sealed class Creator<T> : Functionality<Creator<T>, T>
     {
         private readonly Func<T, RedisValueObject> _create;
 
@@ -197,7 +197,7 @@ internal static class ValueConversion
         }
     }
         
-    private class Converter<TValue, T> : Functionality<Converter<TValue, T>, T>
+    private sealed class Converter<TValue, T> : Functionality<Converter<TValue, T>, T>
         where TValue : RedisObject
     {
         private readonly Func<TValue, T> _convert;
@@ -241,7 +241,7 @@ internal static class ValueConversion
         }
     }
 
-    private class CollectionConverter<T> : DynamicFunctionality<CollectionConverter<T>, Converter<RedisArray, T>, T>
+    private sealed class CollectionConverter<T> : DynamicFunctionality<CollectionConverter<T>, Converter<RedisArray, T>, T>
     {
         protected override Converter<RedisArray, T> CreateInstance()
         {

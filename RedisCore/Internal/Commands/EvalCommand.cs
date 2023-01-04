@@ -3,7 +3,7 @@ using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Internal.Commands;
 
-internal class EvalCommand<TResult> : Command<TResult>
+internal sealed class EvalCommand<TResult> : Command<TResult>
 {
     private static readonly string[] EmptyKeys = Array.Empty<string>();
     private static readonly RedisValueObject[] EmptyArgs = Array.Empty<RedisValueObject>();

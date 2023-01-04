@@ -69,7 +69,7 @@ public static class Utf8Converter
     private delegate bool TryParseDelegate<T>(ReadOnlySpan<byte> source, out T value, out int bytesConsumed, char standardFormat);
     private delegate bool TryFormatDelegate<in T>(T value, Span<byte> destination, out int bytesWritten, StandardFormat format);
         
-    private class ParseFunctionality<T> : Functionality<ParseFunctionality<T>, T>
+    private sealed class ParseFunctionality<T> : Functionality<ParseFunctionality<T>, T>
     {
         private readonly TryParseDelegate<T> _parser;
 
@@ -89,7 +89,7 @@ public static class Utf8Converter
         }
     }
         
-    private class FormatFunctionality<T> : Functionality<FormatFunctionality<T>, T>
+    private sealed class FormatFunctionality<T> : Functionality<FormatFunctionality<T>, T>
     {
         private readonly TryFormatDelegate<T> _formatter;
 

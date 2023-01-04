@@ -4,11 +4,11 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="BenchmarkDotNet" Version="0.13.2" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
-    <PackageVersion Include="MSTest.TestAdapter" Version="2.2.10" />
-    <PackageVersion Include="MSTest.TestFramework" Version="2.2.10" />
-    <PackageVersion Include="StackExchange.Redis" Version="2.6.70" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.13.3" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
+    <PackageVersion Include="MSTest.TestAdapter" Version="3.0.2" />
+    <PackageVersion Include="MSTest.TestFramework" Version="3.0.2" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.6.86" />
     <PackageVersion Include="System.IO.Pipelines" Version="7.0.0" />
   </ItemGroup>
 </Project>

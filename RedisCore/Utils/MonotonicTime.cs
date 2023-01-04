@@ -25,7 +25,7 @@ public static class MonotonicTime
         public abstract TimeSpan GetTime();
     }
 
-    private class DefaultImplementation : Implementation
+    private sealed class DefaultImplementation : Implementation
     {
         private readonly Stopwatch _timer = Stopwatch.StartNew();
 
@@ -33,7 +33,7 @@ public static class MonotonicTime
     }
 
     // See http://man7.org/linux/man-pages/man2/clock_gettime.2.html
-    private class LinuxImplementation : Implementation
+    private sealed class LinuxImplementation : Implementation
     {
         private const long NanosecondsPerSecond = 1_000_000_000;
         private const long NanosecondsPerTick = NanosecondsPerSecond / TimeSpan.TicksPerSecond;

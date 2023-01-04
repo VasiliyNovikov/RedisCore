@@ -6,18 +6,19 @@ internal static class CommandNames
 {
     public static readonly RedisString Ping = new RedisByteString("PING");
     public static readonly RedisString Auth = new RedisByteString("AUTH");
-        
+    public static readonly RedisString Select = new RedisByteString("SELECT");
+
     public static readonly RedisString Get = new RedisByteString("GET");
     public static readonly RedisString Set = new RedisByteString("SET");
     public static readonly RedisString Del = new RedisByteString("DEL");
     public static readonly RedisString PExpire = new RedisByteString("PEXPIRE");
     public static readonly RedisString Exists = new RedisByteString("EXISTS");
-        
+
     public static readonly RedisString Multi = new RedisByteString("MULTI");
     public static readonly RedisString Exec = new RedisByteString("EXEC");
     public static readonly RedisString Discard = new RedisByteString("DISCARD");
     public static readonly RedisString Watch = new RedisByteString("WATCH");
-        
+
     public static readonly RedisString LPush = new RedisByteString("LPUSH");
     public static readonly RedisString RPush = new RedisByteString("RPUSH");
     public static readonly RedisString LPop = new RedisByteString("LPOP");
@@ -36,11 +37,11 @@ internal static class CommandNames
     public static readonly RedisString HKeys = new RedisByteString("HKEYS");
     public static readonly RedisString HVals = new RedisByteString("HVALS");
     public static readonly RedisString HGetAll = new RedisByteString("HGETALL");
-        
+
     public static readonly RedisString Publish = new RedisByteString("PUBLISH");
     public static readonly RedisString Subscribe = new RedisByteString("SUBSCRIBE");
     public static readonly RedisString Unsubscribe = new RedisByteString("UNSUBSCRIBE");
-        
+
     public static readonly RedisString Script = new RedisByteString("SCRIPT");
     public static readonly RedisString Load = new RedisByteString("LOAD");
     public static readonly RedisString Flush = new RedisByteString("FLUSH");

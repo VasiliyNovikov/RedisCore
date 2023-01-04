@@ -17,7 +17,7 @@ public static class BufferPool
 
     public static Memory<T> RentMemory<T>(this IBufferPool<T> bufferPool, int length) => bufferPool.Rent(length).AsMemory(0, length);
 
-    private class Implementation<T> : IBufferPool<T>
+    private sealed class Implementation<T> : IBufferPool<T>
     {
         private T[][]? _buffers;
         private int _length;
@@ -62,7 +62,7 @@ public static class BufferPool
         }
     }
 
-    private class EmptyImplementation<T> : IBufferPool<T>
+    private sealed class EmptyImplementation<T> : IBufferPool<T>
     {
         public static readonly EmptyImplementation<T> Instance = new EmptyImplementation<T>();
 

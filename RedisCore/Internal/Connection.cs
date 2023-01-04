@@ -7,7 +7,7 @@ using RedisCore.Pipelines;
 
 namespace RedisCore.Internal;
 
-internal class Connection : IDisposable, IAsyncDisposable
+internal sealed class Connection : IDisposable, IAsyncDisposable
 {
     private readonly Socket _socket;
     private readonly Stream? _stream;
@@ -16,6 +16,7 @@ internal class Connection : IDisposable, IAsyncDisposable
 
     public bool Connected => _connected && _socket.Connected;
     public bool Authenticated { get; private set; }
+    public int Database { get; private set; }
 
     public PipeReader Input => _pipe.Input;
     public PipeWriter Output => _pipe.Output;
@@ -46,4 +47,6 @@ internal class Connection : IDisposable, IAsyncDisposable
     public void MarkAsDisconnected() => _connected = false;
 
     public void MarkAsAuthenticated() => Authenticated = true;
+
+    public void SetSelectedDatabase(int database) => Database = database;
 }

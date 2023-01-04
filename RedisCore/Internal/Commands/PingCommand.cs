@@ -4,7 +4,7 @@ using RedisCore.Utils;
 
 namespace RedisCore.Internal.Commands;
 
-internal class PingCommand : Command<TimeSpan>
+internal sealed class PingCommand : Command<TimeSpan>
 {
     private readonly TimeSpan _startTime;
 

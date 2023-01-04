@@ -1,6 +1,6 @@
 namespace RedisCore.Internal.Commands;
 
-internal class UnsubscribeCommand : VoidCommand
+internal sealed class UnsubscribeCommand : VoidCommand
 {
     public UnsubscribeCommand()
         : base(CommandNames.Unsubscribe)

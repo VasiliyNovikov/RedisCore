@@ -4,7 +4,7 @@ using RedisCore.Internal.Commands;
 
 namespace RedisCore.Internal;
 
-internal class ScriptCache
+internal sealed class ScriptCache
 {
     private readonly RedisClient _client;
     private readonly ConcurrentDictionary<string, string> _scripts = new();

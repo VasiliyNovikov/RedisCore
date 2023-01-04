@@ -3,7 +3,7 @@ using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Internal.Commands;
 
-internal class HashGetAllCommand<T> : Command<Dictionary<string, T>>
+internal sealed class HashGetAllCommand<T> : Command<Dictionary<string, T>>
 {
     public HashGetAllCommand(string key) 
         : base(CommandNames.HGetAll, key.ToValue())

@@ -534,4 +534,46 @@ return 0";
             await client.Delete(testList);
         }
     }
+
+    [TestMethod]
+    [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+    public async Task RedisClient_Database_Test(RedisClientConfig config)
+    {
+        await using var client1 = new RedisClient(config);
+
+        config.Database = 2;
+        await using var client2 = new RedisClient(config);
+
+        var testKey1 = UniqueString();
+        var testKey2 = UniqueString();
+        var testValue1 = UniqueString();
+        var testValue2 = UniqueString();
+
+        try
+        {
+            await client1.Set(testKey1, testValue1);
+            await client2.Set(testKey2, testValue2);
+
+            Assert.AreEqual(testValue1, (await client1.Get<string>(testKey1)).Value);
+            Assert.IsFalse((await client1.Get<string>(testKey2)).HasValue);
+
+            Assert.AreEqual(testValue2, (await client2.Get<string>(testKey2)).Value);
+            Assert.IsFalse((await client2.Get<string>(testKey1)).HasValue);
+        }
+        finally
+        {
+            await client1.Delete(testKey1);
+            await client2.Delete(testKey2);
+        }
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
+    [ExpectedException(typeof(RedisClientConfig))]
+    public async Task RedisClient_Database_Failure_Test(RedisClientConfig config)
+    {
+        config.Database = 100000;
+        await using var client = new RedisClient(config);
+        await client.Set(UniqueString(), UniqueString());
+    }
 }
