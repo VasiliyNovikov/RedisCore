@@ -1,13 +1,15 @@
 name: Build & Test
 on:
-- push
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
 jobs:
   build:
     strategy:
       matrix:
-        dotnet-version:
-        - 5.0.x
-        - 6.0.x
         os:
         - ubuntu-18.04
         - ubuntu-20.04
@@ -18,10 +20,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+    - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: ${{ matrix.dotnet-version }}
+        dotnet-version: |
+          6.0.x
+          7.0.x
 
     - name: Build
       run: dotnet build
