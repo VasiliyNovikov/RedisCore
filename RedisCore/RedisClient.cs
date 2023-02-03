@@ -22,7 +22,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
 
     public RedisClient(RedisClientConfig config)
     {
-        _config = config;
+        _config = config.Clone();
         _connectionPool = new ConnectionPool(_config);
         if (config.UseScriptCache)
             Scripts = new ScriptCache(this);
@@ -104,6 +104,12 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
             {
                 await Execute(connection, new AuthCommand(_config.Password));
                 connection.MarkAsAuthenticated();
+            }
+
+            if (connection.Database != _config.Database)
+            {
+                await Execute(connection, new SelectCommand(_config.Database));
+                connection.SetSelectedDatabase(_config.Database);
             }
 
             return connection;
@@ -222,7 +228,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
 
     #region Transaction
 
-    private class Transaction : RedisCommandsBase, IRedisTransaction
+    private sealed class Transaction : RedisCommandsBase, IRedisTransaction
     {
         private readonly RedisClient _client;
         private readonly IBufferPool<byte> _bufferPool;
@@ -364,7 +370,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
             }
         }
 
-        private class QueuedValueCommand<T> : QueuedCommand<T>
+        private sealed class QueuedValueCommand<T> : QueuedCommand<T>
         {
             private readonly Command<T> _command;
 
@@ -378,7 +384,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
             protected override T ExtractResult(RedisObject protocolResult) => _command.GetResult(protocolResult);
         }
 
-        private class QueuedBufferCommand<TCommand> : QueuedCommand<Memory<byte>?>
+        private sealed class QueuedBufferCommand<TCommand> : QueuedCommand<Memory<byte>?>
             where TCommand : Command<Optional<byte[]>>
         {
             private readonly TCommand _command;
@@ -417,7 +423,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
 
     #region Subscription
 
-    private class Subscription : ISubscription
+    private sealed class Subscription : ISubscription
     {
         private readonly RedisClient _client;
         private readonly Connection _connection;

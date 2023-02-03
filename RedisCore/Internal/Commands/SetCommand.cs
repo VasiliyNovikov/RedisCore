@@ -3,7 +3,7 @@ using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Internal.Commands;
 
-internal class SetCommand<T> : Command<bool>
+internal sealed class SetCommand<T> : Command<bool>
 {
     private static RedisObject[] PrepareParams(string key, T value, TimeSpan? expiration = null, OptimisticConcurrency concurrency = OptimisticConcurrency.None)
     {

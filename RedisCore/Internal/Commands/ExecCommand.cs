@@ -3,7 +3,7 @@ using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Internal.Commands;
 
-internal class ExecCommand : Command<IReadOnlyList<RedisObject>?>
+internal sealed class ExecCommand : Command<IReadOnlyList<RedisObject>?>
 {
     public ExecCommand()
         : base(CommandNames.Exec)

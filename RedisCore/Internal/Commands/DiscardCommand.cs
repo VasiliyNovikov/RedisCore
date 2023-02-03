@@ -1,6 +1,6 @@
 ﻿namespace RedisCore.Internal.Commands;
 
-internal class DiscardCommand : VoidCommand
+internal sealed class DiscardCommand : VoidCommand
 {
     public DiscardCommand() 
         : base(CommandNames.Discard)

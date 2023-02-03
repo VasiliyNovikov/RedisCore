@@ -58,7 +58,7 @@ public class PipeTests
         await Assert.ThrowsExceptionAsync<TestException>(async () => await pipe.Writer.FlushAsync());
     }
 
-    private class TestException : Exception
+    private sealed class TestException : Exception
     {
     }
 

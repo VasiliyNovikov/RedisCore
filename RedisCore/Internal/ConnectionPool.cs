@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RedisCore.Internal;
 
-internal class ConnectionPool : IDisposable, IAsyncDisposable
+internal sealed class ConnectionPool : IDisposable, IAsyncDisposable
 {
     private const int DefaultTcpPort = 6379;
     private const int DefaultSslPort = 6380;

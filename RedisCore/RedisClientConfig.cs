@@ -13,6 +13,8 @@ public class RedisClientConfig
 
     public string? Password { get; set; }
 
+    public int Database { get; set; }
+
     public int BufferSize { get; set; } = DefaultBufferSize;
 
     public int MaxFreeConnections { get; set; } = DefaultMaxFreeConnections;
@@ -72,6 +74,8 @@ public class RedisClientConfig
         : this(new Uri(uri))
     {
     }
+
+    internal RedisClientConfig Clone() => (RedisClientConfig)MemberwiseClone();
 
     public override string ToString()
     {

@@ -2,7 +2,7 @@
   <Import Project="../RedisCore.targets" />
   <PropertyGroup>
     <TargetFrameworks>net7.0;net6.0;netstandard2.0</TargetFrameworks>
-    <Version>0.2.14</Version>
+    <Version>0.2.15</Version>
     <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
     <Authors>Vasiliy Novikov</Authors>
     <Description>Light .NET Core Redis client</Description>
