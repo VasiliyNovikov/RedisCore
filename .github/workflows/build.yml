@@ -56,9 +56,3 @@ jobs:
     - name: Push
       run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --version-suffix -beta-${{ github.run_number }} --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
       if: ${{ runner.os == 'Windows' }}
-  
-  deploy:
-    runs-on: ubuntu-latest
-    needs: validate
-    steps:
-      
