@@ -17,12 +17,6 @@ jobs:
           - ubuntu-22.04
           - windows-latest
           - macOS-latest
-        include:
-          - local-redis: true
-          - local-redis: false
-            os: windows-latest
-          - local-redis: false
-            os: macOS-latest
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -44,6 +38,6 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
       env:
-        LOCAL_REDIS: ${{ matrix.local-redis }}
+        LOCAL_REDIS: ${{ runner.os == 'Linux' }}
         AZURE_REDIS_HOST: ${{ vars.AZURE_REDIS_HOST }}
         AZURE_REDIS_PWD: ${{ vars.AZURE_REDIS_PWD }}
