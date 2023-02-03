@@ -36,8 +36,15 @@ jobs:
       run: dotnet build
 
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --logger trx --results-directory "TestResults-${{ matrix.os }}"
       env:
         LOCAL_REDIS: ${{ runner.os == 'Linux' }}
         AZURE_REDIS_HOST: ${{ secrets.AZURE_REDIS_HOST }}
         AZURE_REDIS_PWD: ${{ secrets.AZURE_REDIS_PWD }}
+
+    - name: Upload dotnet test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.os }}
+        path: TestResults-${{ matrix.os }}
+      if: ${{ always() }}
