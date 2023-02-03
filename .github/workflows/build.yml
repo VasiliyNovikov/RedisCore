@@ -45,3 +45,5 @@ jobs:
       run: dotnet test --no-build --verbosity normal
       env:
         LOCAL_REDIS: ${{ matrix.local-redis }}
+        AZURE_REDIS_HOST: ${{ vars.AZURE_REDIS_HOST }}
+        AZURE_REDIS_PWD: ${{ vars.AZURE_REDIS_PWD }}

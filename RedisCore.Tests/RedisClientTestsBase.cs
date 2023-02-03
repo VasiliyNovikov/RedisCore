@@ -54,8 +54,8 @@ public class RedisClientTestsBase
         var host = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
         var password = Environment.GetEnvironmentVariable("AZURE_REDIS_PWD");
 
-        Assert.IsNotNull(host, "Host is missing");
-        Assert.IsNotNull(password, "Password is missing");
+        Assert.IsNotNull(host, "Azure Redis host variable is missing");
+        Assert.IsNotNull(password, "Azure Redis password variable is missing");
 
         foreach (var useScriptCache in addScriptCache ? new[] {false, true} : new [] {false})
         foreach (var bufferSize in BufferSizes)
