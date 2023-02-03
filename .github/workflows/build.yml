@@ -1,0 +1,30 @@
+name: Build & Test
+on:
+- push
+jobs:
+  build:
+    strategy:
+      matrix:
+        dotnet-version:
+        - 5.0.x
+        - 6.0.x
+        os:
+        - ubuntu-18.04
+        - ubuntu-20.04
+        - ubuntu-22.04
+        - windows-latest
+        - macOS-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ matrix.dotnet-version }}
+
+    - name: Build
+      run: dotnet build
+
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
