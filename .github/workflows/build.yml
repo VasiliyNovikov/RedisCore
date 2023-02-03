@@ -43,3 +43,5 @@ jobs:
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
+      env:
+        LOCAL_REDIS: ${{ matrix.local-redis }}

@@ -8,9 +8,9 @@ namespace RedisCore.Tests;
 
 public class RedisClientTestsBase
 {
-    private static bool IsVstsBuild => Environment.GetEnvironmentVariable("TF_BUILD") != null;
+    private static bool IsCIBuild => Environment.GetEnvironmentVariable("CI") == "true";
 
-    protected static bool HasLocalRedis => !IsVstsBuild || Environment.GetEnvironmentVariable("LOCAL_REDIS") == "true";
+    protected static bool HasLocalRedis => !IsCIBuild || Environment.GetEnvironmentVariable("LOCAL_REDIS") == "true";
 
     private static string LocalRedisAddress => Environment.GetEnvironmentVariable("LOCAL_REDIS_ADDRESS") ?? "127.0.0.1";
 
@@ -48,7 +48,7 @@ public class RedisClientTestsBase
             foreach (var config in LocalTestConfigs(addScriptCache))
                 yield return config;
 
-        if (!IsVstsBuild)
+        if (!IsCIBuild)
             yield break;
 
         var host = Environment.GetEnvironmentVariable("AZURE_REDIS_HOST");
