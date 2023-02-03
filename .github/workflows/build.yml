@@ -18,6 +18,8 @@ jobs:
           - windows-latest
           - macOS-latest
     runs-on: ${{ matrix.os }}
+    env:
+      LOCAL_REDIS: ${{ runner.os == 'Linux' }}
     steps:
     - uses: actions/checkout@v3
 
@@ -28,7 +30,7 @@ jobs:
           6.0.x
           7.0.x
 
-    - if: ${{ matrix.local-redis }}
+    - if: ${{ env.LOCAL_REDIS == 'true' }}
       name: Install Redis
       run: bash ./RedisCore.Tests/install_redis_debian.sh
 
@@ -38,6 +40,5 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
       env:
-        LOCAL_REDIS: ${{ runner.os == 'Linux' }}
-        AZURE_REDIS_HOST: ${{ vars.AZURE_REDIS_HOST }}
-        AZURE_REDIS_PWD: ${{ vars.AZURE_REDIS_PWD }}
+        AZURE_REDIS_HOST: ${{ secrets.AZURE_REDIS_HOST }}
+        AZURE_REDIS_PWD: ${{ secrets.AZURE_REDIS_PWD }}
