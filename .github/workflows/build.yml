@@ -50,9 +50,9 @@ jobs:
       if: ${{ always() }}
 
     - name: Pack
-      run: dotnet pack -c Release --no-build
+      run: dotnet pack -c Release --no-build --version-suffix -beta-${{ github.run_number }}
       if: ${{ runner.os == 'Windows' }}
 
     - name: Push
-      run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --version-suffix -beta-${{ github.run_number }} --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+      run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
       if: ${{ runner.os == 'Windows' }}
