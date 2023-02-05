@@ -9,6 +9,7 @@
     <Copyright>Vasiliy Novikov</Copyright>
     <PackageProjectUrl>https://github.com/VasiliyNovikov/RedisCore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/VasiliyNovikov/RedisCore</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>redis</PackageTags>
@@ -19,6 +20,6 @@
     <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\README.md" Link="README.md" Pack="true" />
+    <None Include="..\README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>
