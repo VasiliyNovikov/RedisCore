@@ -67,7 +67,7 @@ jobs:
         run: dotnet build -c ${{ vars.CONFIGURATION }}
 
       - name: Pack
-        run: dotnet pack ./RedisCore/RedisCore.csproj -c ${{ vars.CONFIGURATION }} --no-build --version-suffix "${{ fromJSON('["-beta-' + github.run_number + '", ""]')[github.ref_name == 'master'] }}"
+        run: dotnet pack ./RedisCore/RedisCore.csproj -c ${{ vars.CONFIGURATION }} --no-build --version-suffix "${{ fromJSON(format('["-beta-{0}", ""]', github.run_number))[github.ref_name == 'master'] }}"
 
       - name: Push
         run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
