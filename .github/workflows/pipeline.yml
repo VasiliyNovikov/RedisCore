@@ -6,9 +6,6 @@ on:
   pull_request:
     branches:
       - master
-env:
-  configuration: Release
-  publish: true
 jobs:
   validate:
     strategy:
@@ -35,10 +32,10 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
 
       - name: Build
-        run: dotnet build -c ${{ env.configuration }}
+        run: dotnet build -c ${{ vars.CONFIGURATION }}
 
       - name: Test
-        run: dotnet test -c ${{ env.configuration }} --no-build --logger trx --results-directory "TestResults-${{ matrix.os }}"
+        run: dotnet test -c ${{ vars.CONFIGURATION }} --no-build --logger trx --results-directory "TestResults-${{ matrix.os }}"
         env:
           LOCAL_REDIS: ${{ runner.os == 'Linux' }}
           AZURE_REDIS_HOST: ${{ secrets.AZURE_REDIS_HOST }}
@@ -52,7 +49,7 @@ jobs:
         if: ${{ always() }}
 
   publish:
-    if: ${{ env.publish == 'true' || env.publish == 'auto' && github.ref_name == 'master' }}
+    if: ${{ success() && (vars.PUBLISH == 'true' || vars.PUBLISH == 'auto' && github.ref_name == 'master') }}
     needs:
       - validate
     runs-on: ubuntu-latest
@@ -67,15 +64,10 @@ jobs:
             7.0.x
     
       - name: Build
-        run: dotnet build -c ${{ env.configuration }}
-
-      - name: Pack Beta
-        run: dotnet pack ./RedisCore/RedisCore.csproj -c ${{ env.configuration }} --no-build --version-suffix -beta-${{ github.run_number }}
-        if: ${{ github.ref_name != 'master' }}
+        run: dotnet build -c ${{ vars.CONFIGURATION }}
 
       - name: Pack
-        run: dotnet pack ./RedisCore/RedisCore.csproj -c ${{ env.configuration }} --no-build
-        if: ${{ github.ref_name == 'master' }}
+        run: dotnet pack ./RedisCore/RedisCore.csproj -c ${{ vars.CONFIGURATION }} --no-build --version-suffix "${{ fromJSON('["-beta-' + github.run_number + '", ""]')[github.ref_name == 'master'] }}"
 
       - name: Push
         run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
