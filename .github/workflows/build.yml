@@ -50,7 +50,7 @@ jobs:
       if: ${{ always() }}
 
     - name: Pack
-      run: dotnet pack -c Release --no-build --version-suffix -beta-${{ github.run_number }}
+      run: dotnet pack ./RedisCore/RedisCore.csproj -c Release --no-build --version-suffix -beta-${{ github.run_number }}
       if: ${{ runner.os == 'Windows' }}
 
     - name: Push
