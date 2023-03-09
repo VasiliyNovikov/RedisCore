@@ -1,4 +1,4 @@
 # Redis Core
-.NET Core Redis client
+.NET lightweight Redis client
 
 [NuGet package](https://www.nuget.org/packages/RedisCore)

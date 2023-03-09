@@ -2,13 +2,14 @@
   <Import Project="../RedisCore.targets" />
   <PropertyGroup>
     <TargetFrameworks>net7.0;net6.0;netstandard2.0</TargetFrameworks>
-    <Version>0.2.15</Version>
+    <Version>0.2.16</Version>
     <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
     <Authors>Vasiliy Novikov</Authors>
     <Description>Light .NET Core Redis client</Description>
     <Copyright>Vasiliy Novikov</Copyright>
     <PackageProjectUrl>https://github.com/VasiliyNovikov/RedisCore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/VasiliyNovikov/RedisCore</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>redis</PackageTags>
@@ -17,5 +18,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Pipelines" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

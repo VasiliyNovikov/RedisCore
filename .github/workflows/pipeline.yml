@@ -1,0 +1,73 @@
+name: Validate & Publish
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  validate:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-18.04
+          - ubuntu-20.04
+          - ubuntu-22.04
+          - macOS-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+
+      - name: Install Redis
+        run: bash ./RedisCore.Tests/install_redis_debian.sh
+        if: ${{ runner.os == 'Linux' }}
+
+      - name: Build
+        run: dotnet build -c ${{ vars.CONFIGURATION }}
+
+      - name: Test
+        run: dotnet test -c ${{ vars.CONFIGURATION }} --no-build --logger trx --results-directory "TestResults-${{ matrix.os }}"
+        env:
+          LOCAL_REDIS: ${{ runner.os == 'Linux' }}
+          AZURE_REDIS_HOST: ${{ secrets.AZURE_REDIS_HOST }}
+          AZURE_REDIS_PWD: ${{ secrets.AZURE_REDIS_PWD }}
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.os }}
+          path: TestResults-${{ matrix.os }}
+        if: ${{ always() }}
+
+  publish:
+    if: ${{ success() && (vars.PUBLISH == 'true' || vars.PUBLISH == 'auto' && github.ref_name == 'master') }}
+    needs:
+      - validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+
+      - name: Build
+        run: dotnet build -c ${{ vars.CONFIGURATION }}
+
+      - name: Pack
+        run: dotnet pack ./RedisCore/RedisCore.csproj -c ${{ vars.CONFIGURATION }} --no-build --version-suffix "${{ fromJSON(format('["-beta-{0}", ""]', github.run_number))[github.ref_name == 'master'] }}"
+
+      - name: Push
+        run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
