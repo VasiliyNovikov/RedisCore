@@ -16,7 +16,7 @@ internal sealed class ConnectionPool : IDisposable, IAsyncDisposable
 
     private readonly RedisClientConfig _config;
     private bool _disposed;
-    private readonly ConcurrentBag<Connection> _connections = new();
+    private readonly ConcurrentBag<Connection> _connections = [];
     private readonly Task _maintainTask;
     private readonly CancellationTokenSource _maintainTaskCancellation = new();
 
@@ -46,26 +46,18 @@ internal sealed class ConnectionPool : IDisposable, IAsyncDisposable
     {
         var uri = _config.Uri;
         EndPoint endPoint;
-        bool isUnixEndpoint;
-        if (_config.Uri.Scheme == RedisUriSchema.Unix)
-        {
-#if NETCOREAPP3_1_OR_GREATER
+        var isUnixEndpoint = _config.Uri.Scheme == RedisUriSchema.Unix;
+        if (isUnixEndpoint)
             endPoint = new UnixDomainSocketEndPoint(uri.AbsolutePath);
-            isUnixEndpoint = true;
-#else
-                throw new PlatformNotSupportedException("Unix domain sockets are not supported by the runtime");
-#endif
-        }
         else
         {
-            var address = uri.HostNameType == UriHostNameType.Dns 
+            var address = uri.HostNameType == UriHostNameType.Dns
                 ? (await Dns.GetHostEntryAsync(uri.DnsSafeHost)).AddressList[0]
                 : IPAddress.Parse(uri.DnsSafeHost);
             var port = uri.IsDefaultPort
                 ? uri.Scheme == RedisUriSchema.Tcp ? DefaultTcpPort : DefaultSslPort
                 : uri.Port;
             endPoint = new IPEndPoint(address, port);
-            isUnixEndpoint = false;
         }
 
         var socket = new Socket(endPoint.AddressFamily, SocketType.Stream, isUnixEndpoint ? ProtocolType.Unspecified : ProtocolType.Tcp);
@@ -130,7 +122,7 @@ internal sealed class ConnectionPool : IDisposable, IAsyncDisposable
             connection.Dispose();
             return;
         }
-            
+
         _connections.Add(connection);
     }
 

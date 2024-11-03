@@ -1,5 +1,7 @@
 ﻿using System;
+#if NETSTANDARD2_0
 using System.Text;
+#endif
 
 namespace RedisCore.Internal.Protocol;
 

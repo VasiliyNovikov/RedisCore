@@ -1,53 +1,35 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace RedisCore.Tests;
 
 public class RedisClientTestsBase
 {
+    protected const string LocalRedisAddress = "127.0.0.1";
+#if LINUX
+    private const string LocalRedisSocket = "/var/run/redis/redis.sock";
+#endif
+
     private static bool IsCIBuild => Environment.GetEnvironmentVariable("CI") == "true";
 
-    protected static bool HasLocalRedis => !IsCIBuild || Environment.GetEnvironmentVariable("LOCAL_REDIS") == "true";
+    protected static readonly int[] BufferSizes = [64, 256, 65536];
 
-    private static string LocalRedisAddress => Environment.GetEnvironmentVariable("LOCAL_REDIS_ADDRESS") ?? "127.0.0.1";
-
-    private static readonly int[] BufferSizes = {64, 256, 65536};
-
-    private static IEnumerable<RedisClientConfig> LocalTestConfigs(bool addScriptCache = false)
+    protected static IEnumerable<RedisClientConfig> TestConfigs(bool addScriptCache = false)
     {
-        foreach (var useScriptCache in addScriptCache ? new[] {false, true} : new [] {false})
-        {
+#if LINUX
+        foreach (var useScriptCache in addScriptCache ? [false, true] : new[] { false })
             foreach (var bufferSize in BufferSizes)
-            {
-                foreach (var forceUseNetworkStream in new[] {false, true})
-                {
-                    yield return new RedisClientConfig($"tcp://{LocalRedisAddress}")
-                    {
-                        BufferSize = bufferSize,
-                        ForceUseNetworkStream = forceUseNetworkStream,
-                        UseScriptCache = useScriptCache
-                    };
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                        yield return new RedisClientConfig("unix:///var/run/redis/redis.sock")
+                foreach (var forceUseNetworkStream in new[] { false, true })
+                    foreach (var uri in new[] { $"tcp://{LocalRedisAddress}", $"unix://{LocalRedisSocket}" })
+                        yield return new RedisClientConfig(uri)
                         {
                             BufferSize = bufferSize,
                             ForceUseNetworkStream = forceUseNetworkStream,
                             UseScriptCache = useScriptCache
                         };
-                }
-            }
-        }
-    }
-
-    protected static IEnumerable<RedisClientConfig> TestConfigs(bool addScriptCache = false)
-    {
-        if (HasLocalRedis)
-            foreach (var config in LocalTestConfigs(addScriptCache))
-                yield return config;
-
+#endif
         if (!IsCIBuild)
             yield break;
 
@@ -57,13 +39,12 @@ public class RedisClientTestsBase
         Assert.IsNotNull(host, "Azure Redis host variable is missing");
         Assert.IsNotNull(password, "Azure Redis password variable is missing");
 
-        foreach (var useScriptCache in addScriptCache ? new[] {false, true} : new [] {false})
-        foreach (var bufferSize in BufferSizes)
-            yield return new RedisClientConfig($"ssl://{host}") {Password = password, BufferSize = bufferSize, UseScriptCache = useScriptCache};
+        foreach (var useScriptCache in addScriptCache ? [false, true] : new[] { false })
+            foreach (var bufferSize in BufferSizes)
+                yield return new RedisClientConfig($"ssl://{host}") { Password = password, BufferSize = bufferSize, UseScriptCache = useScriptCache };
     }
 
-    protected static IEnumerable<object[]> Local_Test_Endpoints_Data() => LocalTestConfigs().Select(cfg => new object[] {cfg});
-    protected static IEnumerable<object[]> Test_Endpoints_Data() => TestConfigs().Select(cfg => new object[] {cfg});
+    protected static IEnumerable<object[]> Test_Endpoints_Data() => TestConfigs().Select(cfg => new object[] { cfg });
 
     protected static string UniqueString() => Guid.NewGuid().ToString();
 

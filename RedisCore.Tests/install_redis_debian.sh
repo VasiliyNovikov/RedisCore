@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-sudo service unattended-upgrades stop
-sudo apt update
-sudo apt install -y redis-server
-sudo service unattended-upgrades start
-sudo cp -rf ./RedisCore.Tests/redis.conf /etc/redis/redis.conf
-sudo service redis-server restart
+set -e
+
+if [ "$EUID" -ne 0 ]; then
+  exec sudo bash "$0" "$@"
+fi
+
+apt update
+apt install -y redis-server
+cp -rf ./RedisCore.Tests/redis.conf /etc/redis/redis.conf
+service redis-server restart

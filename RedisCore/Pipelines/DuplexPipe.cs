@@ -6,9 +6,7 @@ namespace RedisCore.Pipelines;
 
 public abstract class DuplexPipe : IDuplexPipe
 {
-    private readonly PipeReader _input;
     private readonly PipeWriter _inputBackend;
-    private readonly PipeWriter _output;
     private readonly PipeReader _outputBackend;
     private Task? _populateTask;
 
@@ -19,8 +17,9 @@ public abstract class DuplexPipe : IDuplexPipe
         get
         {
             EnsureStartPopulating();
-            return _input;
+            return field;
         }
+        private set;
     }
 
     public PipeWriter Output
@@ -28,8 +27,9 @@ public abstract class DuplexPipe : IDuplexPipe
         get
         {
             EnsureStartPopulating();
-            return _output;
+            return field;
         }
+        private set;
     }
 
     protected DuplexPipe(int bufferSegmentSize = 512, int pauseWriterThreshold = 8192, int resumeWriterThreshold = 4096)
@@ -41,9 +41,9 @@ public abstract class DuplexPipe : IDuplexPipe
             useSynchronizationContext: false);
         var inputPipe = new Pipe(options);
         var outputPipe = new Pipe(options);
-        _input = inputPipe.Reader;
+        Input = inputPipe.Reader;
         _inputBackend = inputPipe.Writer;
-        _output = outputPipe.Writer;
+        Output = outputPipe.Writer;
         _outputBackend = outputPipe.Reader;
     }
 
@@ -62,7 +62,7 @@ public abstract class DuplexPipe : IDuplexPipe
             await _inputBackend.CompleteAsync(e);
         }
     }
-        
+
     private async Task PopulateWriterHandleErrors()
     {
         try

@@ -64,7 +64,7 @@ public static class BufferPool
 
     private sealed class EmptyImplementation<T> : IBufferPool<T>
     {
-        public static readonly EmptyImplementation<T> Instance = new EmptyImplementation<T>();
+        public static readonly EmptyImplementation<T> Instance = new();
 
         public T[] Rent(int minimumLength) => new T[minimumLength];
 

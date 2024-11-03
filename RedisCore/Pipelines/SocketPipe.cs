@@ -13,7 +13,7 @@ public class SocketPipe : DuplexPipe
     {
         _socket = socket;
     }
-        
+
     protected override async Task PopulateReader(PipeWriter readerBackend)
     {
         while (true)
@@ -44,7 +44,7 @@ public class SocketPipe : DuplexPipe
             }
 
             writerBackend.AdvanceTo(result.Buffer.End);
-               
+
             if (result.IsCompleted)
                 break;
         }

@@ -10,58 +10,79 @@ jobs:
   validate:
     strategy:
       matrix:
-        os:
-          - ubuntu-18.04
-          - ubuntu-20.04
-          - ubuntu-22.04
-          - macOS-latest
-          - windows-latest
+        include:
+          - name: Linux-U18
+            os: ubuntu-latest
+            container: ubuntu:18.04
+          - name: Linux-U20
+            os: ubuntu-20.04
+          - name: Linux-U22
+            os: ubuntu-22.04
+          - name: Linux-U24
+            os: ubuntu-24.04
+          - name: MacOS
+            os: macOS-latest
+          - name: Windows
+            os: windows-latest
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
     steps:
+      - name: Install Dependencies
+        run: |
+          set -e
+          apt update && apt upgrade -y
+          apt install -y curl libicu-dev git
+          curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+          apt install -y nodejs
+          node -v && npm -v
+        if: matrix.name == 'Linux-U18'
+        
       - uses: actions/checkout@v3
 
-      - name: Setup .NET Core SDK
+      - name: Install Redis
+        run: bash ./RedisCore.Tests/install_redis_debian.sh
+        if: runner.os == 'Linux'
+
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |
             6.0.x
-            7.0.x
-
-      - name: Install Redis
-        run: bash ./RedisCore.Tests/install_redis_debian.sh
-        if: ${{ runner.os == 'Linux' }}
+            8.0.x
+            9.0.x
 
       - name: Build
         run: dotnet build -c ${{ vars.CONFIGURATION }}
 
       - name: Test
-        run: dotnet test -c ${{ vars.CONFIGURATION }} --no-build --logger trx --results-directory "TestResults-${{ matrix.os }}"
+        run: dotnet test -c ${{ vars.CONFIGURATION }} --no-build --logger trx --results-directory "TestResults-${{ matrix.name }}"
         env:
-          LOCAL_REDIS: ${{ runner.os == 'Linux' }}
           AZURE_REDIS_HOST: ${{ secrets.AZURE_REDIS_HOST }}
           AZURE_REDIS_PWD: ${{ secrets.AZURE_REDIS_PWD }}
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
-          name: test-results-${{ matrix.os }}
-          path: TestResults-${{ matrix.os }}
-        if: ${{ always() }}
+          name: test-results-${{ matrix.name }}
+          path: TestResults-${{ matrix.name }}
+        if: always()
 
   publish:
-    if: ${{ success() && (vars.PUBLISH == 'true' || vars.PUBLISH == 'auto' && github.ref_name == 'master') }}
+    if: success() && (vars.PUBLISH == 'true' || vars.PUBLISH == 'auto' && github.ref_name == 'master')
     needs:
       - validate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            6.0.x
-            7.0.x
+            8.0.x
+            9.0.x
 
       - name: Build
         run: dotnet build -c ${{ vars.CONFIGURATION }}

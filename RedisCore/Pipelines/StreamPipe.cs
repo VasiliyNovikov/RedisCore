@@ -13,7 +13,7 @@ public class StreamPipe : DuplexPipe
     {
         _stream = stream;
     }
-        
+
     protected override async Task PopulateReader(PipeWriter readerBackend)
     {
         while (true)
@@ -45,7 +45,7 @@ public class StreamPipe : DuplexPipe
 
             await _stream.FlushAsync();
             writerBackend.AdvanceTo(result.Buffer.End);
-               
+
             if (result.IsCompleted)
                 break;
         }

@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="../RedisCore.targets" />
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net6.0;netstandard2.0</TargetFrameworks>
-    <Version>0.2.16</Version>
+    <TargetFrameworks>net9.0;net8.0;netstandard2.0</TargetFrameworks>
+    <Version>0.2.17</Version>
     <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
-    <Authors>Vasiliy Novikov</Authors>
-    <Description>Light .NET Core Redis client</Description>
-    <Copyright>Vasiliy Novikov</Copyright>
+    <Authors>Vasyl Novikov</Authors>
+    <Description>.NET lightweight Redis client</Description>
+    <Copyright>Vasyl Novikov</Copyright>
     <PackageProjectUrl>https://github.com/VasiliyNovikov/RedisCore</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -18,6 +18,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Pipelines" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+    <PackageReference Include="Microsoft.Bcl.Memory" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="/" />

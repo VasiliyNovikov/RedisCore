@@ -42,7 +42,7 @@ public class RedisClientConfig
     {
         static void ThrowMalformedUri() => throw new ArgumentException("Malformed redis connection uri", nameof(uri));
 
-        if (uri.Query != "") 
+        if (uri.Query != "")
             ThrowMalformedUri();
 
         switch (uri.Scheme)

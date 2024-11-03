@@ -9,8 +9,8 @@ internal sealed class RedisArray : RedisObject
 
     public RedisArray(IEnumerable<RedisObject> items) => Items = items.ToList().AsReadOnly();
 
-    public RedisArray(params RedisObject[] items) 
-        : this((IEnumerable<RedisObject>) items)
+    public RedisArray(params RedisObject[] items)
+        : this((IEnumerable<RedisObject>)items)
     {
     }
 }

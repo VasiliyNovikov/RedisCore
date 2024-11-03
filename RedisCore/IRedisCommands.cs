@@ -13,7 +13,7 @@ public interface IRedisCommands
     ValueTask<bool> Delete(string key);
     ValueTask<bool> Expire(string key, TimeSpan time);
     ValueTask<bool> Exists(string key);
-        
+
     ValueTask<int> LeftPush<T>(string key, T value);
     ValueTask<int> RightPush<T>(string key, T value);
     ValueTask<Optional<T>> LeftPop<T>(string key);
@@ -22,7 +22,7 @@ public interface IRedisCommands
     ValueTask<Optional<T>> BlockingRightPopLeftPush<T>(string source, string destination, TimeSpan timeout);
     ValueTask<Optional<T>> ListIndex<T>(string key, int index);
     ValueTask<int> ListLength(string key);
-        
+
     ValueTask<Optional<T>> HashGet<T>(string key, string field);
     ValueTask<bool> HashSet<T>(string key, string field, T value, OptimisticConcurrency concurrency = OptimisticConcurrency.None);
     ValueTask<bool> HashDelete(string key, string field);
@@ -31,7 +31,7 @@ public interface IRedisCommands
     ValueTask<HashSet<string>> HashKeys(string key);
     ValueTask<T[]> HashValues<T>(string key);
     ValueTask<Dictionary<string, T>> HashItems<T>(string key);
-        
+
     ValueTask<int> Publish<T>(string channel, T message);
 
     ValueTask<TResult> Eval<TResult>(string script, params string[] keys);
@@ -49,7 +49,7 @@ public interface IRedisBufferCommands
     ValueTask<Memory<byte>?> BlockingRightPopLeftPush(string source, string destination, TimeSpan timeout, IBufferPool<byte> bufferPool);
     ValueTask<Memory<byte>?> ListIndex(string key, int index, IBufferPool<byte> bufferPool);
     ValueTask<Memory<byte>?> HashGet(string key, string field, IBufferPool<byte> bufferPool);
-        
+
     ValueTask<Memory<byte>?> Eval(IBufferPool<byte> bufferPool, string script, params string[] keys);
     ValueTask<Memory<byte>?> Eval<T>(IBufferPool<byte> bufferPool, string script, T arg, params string[] keys);
     ValueTask<Memory<byte>?> Eval<T1, T2>(IBufferPool<byte> bufferPool, string script, T1 arg1, T2 arg2, params string[] keys);

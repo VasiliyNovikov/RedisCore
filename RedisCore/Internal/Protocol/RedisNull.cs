@@ -5,6 +5,6 @@ internal sealed class RedisNull : RedisValueObject
     private RedisNull()
     {
     }
-            
+
     public static readonly RedisNull Value = new();
 }

@@ -12,7 +12,7 @@ public class RedisConnectDisconnectBenchmarks
     public async Task Tcp_OfficialClient_Connect_Ping_Disconnect()
     {
         var tcpEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6379);
-        using var client = await ConnectionMultiplexer.ConnectAsync(new ConfigurationOptions {EndPoints = {tcpEndPoint}});
+        await using var client = await ConnectionMultiplexer.ConnectAsync(new ConfigurationOptions { EndPoints = { tcpEndPoint } });
         await client.GetDatabase().PingAsync();
     }
 
@@ -20,7 +20,7 @@ public class RedisConnectDisconnectBenchmarks
     public async Task Unix_OfficialClient_Connect_Ping_Disconnect()
     {
         var unixEndPoint = new UnixDomainSocketEndPoint("/var/run/redis/redis.sock");
-        using var client = await ConnectionMultiplexer.ConnectAsync(new ConfigurationOptions {EndPoints = {unixEndPoint}});
+        await using var client = await ConnectionMultiplexer.ConnectAsync(new ConfigurationOptions { EndPoints = { unixEndPoint } });
         await client.GetDatabase().PingAsync();
     }
 

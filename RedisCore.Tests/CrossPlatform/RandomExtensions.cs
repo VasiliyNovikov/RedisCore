@@ -1,5 +1,4 @@
 ﻿#if !NET6_0_OR_GREATER
-
 namespace System;
 
 public static class RandomExtensions

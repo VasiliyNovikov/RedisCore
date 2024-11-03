@@ -4,7 +4,7 @@ namespace RedisCore.Internal.Commands;
 
 internal abstract class VoidCommand : Command<bool>
 {
-    protected VoidCommand(RedisString name, params RedisObject[] args) 
+    protected VoidCommand(RedisString name, params RedisObject[] args)
         : base(name, args)
     {
     }
