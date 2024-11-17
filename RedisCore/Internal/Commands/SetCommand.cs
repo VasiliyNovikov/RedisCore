@@ -12,7 +12,7 @@ internal sealed class SetCommand<T> : Command<bool>
             paramCount += 2;
         if (concurrency != OptimisticConcurrency.None)
             ++paramCount;
-            
+
         var @params = new RedisObject[paramCount];
         @params[0] = key.ToValue();
         @params[1] = value.ToValue();
@@ -20,7 +20,7 @@ internal sealed class SetCommand<T> : Command<bool>
         if (expiration != null)
         {
             @params[paramIndex++] = CommandSwitches.PX;
-            @params[paramIndex++] = ((int) expiration.Value.TotalMilliseconds).ToValue();
+            @params[paramIndex++] = ((int)expiration.Value.TotalMilliseconds).ToValue();
         }
         switch (concurrency)
         {
@@ -34,8 +34,8 @@ internal sealed class SetCommand<T> : Command<bool>
 
         return @params;
     }
-        
-    public SetCommand(string key, T value, TimeSpan? expiration = null, OptimisticConcurrency concurrency = default) 
+
+    public SetCommand(string key, T value, TimeSpan? expiration = null, OptimisticConcurrency concurrency = default)
         : base(CommandNames.Set, PrepareParams(key, value, expiration, concurrency))
     {
     }

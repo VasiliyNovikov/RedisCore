@@ -164,7 +164,7 @@ public abstract class RedisCommandsBase : IRedisCommands, IRedisBufferCommands
     #endregion IRedisCommands
 
     #region IRedisBufferCommands
-        
+
     public async ValueTask<Memory<byte>?> Get(string key, IBufferPool<byte> bufferPool)
     {
         return await Execute(new GetCommand<byte[]>(key), bufferPool);

@@ -5,7 +5,7 @@ namespace RedisCore;
 
 public readonly struct Optional<T> : IEquatable<Optional<T>>
 {
-    private static readonly IEqualityComparer<T> ValueComparer = EqualityComparer<T>.Default;
+    private static readonly EqualityComparer<T> ValueComparer = EqualityComparer<T>.Default;
 
     public static readonly Optional<T> Unspecified;
 

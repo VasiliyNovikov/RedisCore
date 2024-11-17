@@ -1,4 +1,4 @@
-#if !NET6_0_OR_GREATER
+#if NETSTANDARD2_0
 namespace System.Text;
 
 public static class EncodingExtensions

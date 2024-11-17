@@ -26,7 +26,7 @@ public class RedisClientTests : RedisClientTestsBase
             Assert.IsTrue(testRtt > rtt);
         }
     }
-        
+
     [TestMethod]
     [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
     public async Task RedisClient_Get_Set_Delete_Exists_Test(RedisClientConfig config)
@@ -49,7 +49,7 @@ public class RedisClientTests : RedisClientTestsBase
             Assert.IsFalse(await client.Exists(testKey));
         }
     }
-        
+
     [TestMethod]
     [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
     public async Task RedisClient_Set_With_Concurrency_Test(RedisClientConfig config)
@@ -76,7 +76,7 @@ public class RedisClientTests : RedisClientTestsBase
             await client.Delete(testKey);
         }
     }
-        
+
     [TestMethod]
     [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
     public async Task RedisClient_Get_Set_Delete_Large_Test(RedisClientConfig config)
@@ -102,7 +102,7 @@ public class RedisClientTests : RedisClientTestsBase
             Assert.IsNull(await client.GetOrDefault<string>(testKey));
         }
     }
-        
+
     [TestMethod]
     [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
     public async Task RedisClient_Get_Set_Delete_Buffered_Test(RedisClientConfig config)
@@ -146,7 +146,7 @@ public class RedisClientTests : RedisClientTestsBase
 
         Assert.IsNull(await client.GetOrDefault<string>(testKey));
     }
-        
+
     [TestMethod]
     [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
     public async Task RedisClient_Set_Expire_Test_2(RedisClientConfig config)
@@ -183,7 +183,7 @@ public class RedisClientTests : RedisClientTestsBase
             Assert.IsNull(await client.GetOrDefault<int?>(testKey));
         }
     }
-        
+
     [TestMethod]
     [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
     public async Task RedisClient_Hash_Get_Keys_Values_All_Test(RedisClientConfig config)
@@ -287,7 +287,7 @@ public class RedisClientTests : RedisClientTestsBase
             await subscription.Unsubscribe();
         }
     }
-        
+
     [TestMethod]
     [DynamicData(nameof(Test_Endpoints_Data), typeof(RedisClientTestsBase), DynamicDataSourceType.Method)]
     public async Task RedisClient_PubSub_Send_Receive_Buffered_Test(RedisClientConfig config)
@@ -393,8 +393,8 @@ public class RedisClientTests : RedisClientTestsBase
             await client.Ping();
         }
     }
-        
-    protected static IEnumerable<object[]> Eval_Test_Endpoints_Data() => TestConfigs(true).Select(cfg => new object[] {cfg});
+
+    protected static IEnumerable<object[]> Eval_Test_Endpoints_Data() => TestConfigs(true).Select(cfg => new object[] { cfg });
 
     [TestMethod]
     [DynamicData(nameof(Eval_Test_Endpoints_Data), typeof(RedisClientTests), DynamicDataSourceType.Method)]
@@ -437,7 +437,7 @@ public class RedisClientTests : RedisClientTestsBase
         Assert.AreEqual(testValue, value);
 
         await client.ScriptFlush();
-            
+
         value = await client.Eval<string, string>("return ARGV[1]", testValue);
         Assert.AreEqual(testValue, value);
     }
@@ -473,9 +473,11 @@ public class RedisClientTests : RedisClientTestsBase
         var testValue2 = UniqueString();
 
         const string script =
-            @"local data1 = redis.call('GET', KEYS[1])
-local data2 = redis.call('GET', KEYS[2])
-return {data1, data2}";
+            """
+            local data1 = redis.call('GET', KEYS[1])
+            local data2 = redis.call('GET', KEYS[2])
+            return {data1, data2}
+            """;
 
         await client.Set(testKey1, testValue1);
         await client.Set(testKey2, testValue2);
@@ -512,11 +514,13 @@ return {data1, data2}";
         var testValue = UniqueBinary(65536);
 
         const string script =
-            @"local data = redis.call('GET', KEYS[1])
-if data then
-    redis.call('LPUSH', KEYS[2], data)
-end
-return 0";
+            """
+            local data = redis.call('GET', KEYS[1])
+            if data then
+                redis.call('LPUSH', KEYS[2], data)
+            end
+            return 0
+            """;
 
         try
         {

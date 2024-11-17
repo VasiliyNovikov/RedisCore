@@ -1,4 +1,4 @@
-#if !NET6_0_OR_GREATER
+#if NETSTANDARD2_0
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using RedisCore.Utils;

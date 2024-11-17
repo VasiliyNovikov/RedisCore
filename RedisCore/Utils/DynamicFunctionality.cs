@@ -6,8 +6,8 @@ public abstract class DynamicFunctionality<TDynamicFunctionality, TFunctionality
     where TFunctionality : Functionality<TFunctionality, T>
     where TDynamicFunctionality : DynamicFunctionality<TDynamicFunctionality, TFunctionality, T>, new()
 {
-    private static readonly TDynamicFunctionality DynInstance = new TDynamicFunctionality();
-            
+    private static readonly TDynamicFunctionality DynInstance = new();
+
     protected abstract TFunctionality CreateInstance();
 
     protected static TFunctionality Instance

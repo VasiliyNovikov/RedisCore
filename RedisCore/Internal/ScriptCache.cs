@@ -26,7 +26,7 @@ internal sealed class ScriptCache
     /// </summary>
     public async ValueTask ReUploadAll()
     {
-        foreach (var script in _scripts.Keys) 
+        foreach (var script in _scripts.Keys)
             await GetNoCache(script);
     }
 

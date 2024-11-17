@@ -7,17 +7,11 @@ namespace RedisCore.Utils;
 
 public static class MonotonicTime
 {
-    private static readonly Implementation Impl;
+    private static readonly Implementation Impl =
+        RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+            ? new LinuxImplementation()
+            : new DefaultImplementation();
 
-    static MonotonicTime()
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            Impl = new LinuxImplementation();
-        else
-            Impl = new DefaultImplementation();
-            
-    }
-        
     public static TimeSpan Now => Impl.GetTime();
 
     private abstract class Implementation
@@ -41,24 +35,25 @@ public static class MonotonicTime
         public override TimeSpan GetTime()
         {
             var result = clock_gettime(clockid_t.CLOCK_MONOTONIC_RAW, out var time);
-            if (result != 0)
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-
-            return new TimeSpan((time.tv_sec * NanosecondsPerSecond + time.tv_nsec + NanosecondsPerTick / 2) / NanosecondsPerTick);
+            return result == 0
+                ? new TimeSpan((time.tv_sec * NanosecondsPerSecond + time.tv_nsec + NanosecondsPerTick / 2) / NanosecondsPerTick)
+                : throw new Win32Exception(Marshal.GetLastWin32Error());
         }
 
 #pragma warning disable CS8981 // The type name only contains lower-cased ascii characters
+#pragma warning disable IDE1006  // Naming Styles
         private enum clockid_t
         {
             CLOCK_MONOTONIC_RAW = 4
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct timespec
+        private readonly struct timespec
         {
             public readonly long tv_sec;
             public readonly long tv_nsec;
         }
+#pragma warning restore IDE1006
 #pragma warning restore CS8981
 
         [DllImport("libc.so.6", SetLastError = true)]
