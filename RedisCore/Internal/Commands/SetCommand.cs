@@ -3,7 +3,8 @@ using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Internal.Commands;
 
-internal sealed class SetCommand<T> : Command<bool>
+internal sealed class SetCommand<T>(string key, T value, TimeSpan? expiration = null, OptimisticConcurrency concurrency = default)
+    : Command<bool>(CommandNames.Set, PrepareParams(key, value, expiration, concurrency))
 {
     private static RedisObject[] PrepareParams(string key, T value, TimeSpan? expiration = null, OptimisticConcurrency concurrency = OptimisticConcurrency.None)
     {
@@ -33,11 +34,6 @@ internal sealed class SetCommand<T> : Command<bool>
         }
 
         return @params;
-    }
-
-    public SetCommand(string key, T value, TimeSpan? expiration = null, OptimisticConcurrency concurrency = default)
-        : base(CommandNames.Set, PrepareParams(key, value, expiration, concurrency))
-    {
     }
 
     public override bool GetResult(RedisObject resultObject) => resultObject != RedisNull.Value;

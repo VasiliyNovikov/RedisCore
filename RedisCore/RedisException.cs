@@ -28,15 +28,9 @@ public class RedisConnectionException : RedisException
     }
 }
 
-public class RedisClientException : RedisException
+public class RedisClientException(string type, string message) : RedisException($"{type}: {message}")
 {
-    public string Type { get; }
-
-    public RedisClientException(string type, string message)
-        : base($"{type}: {message}")
-    {
-        Type = type;
-    }
+    public string Type => type;
 }
 
 public static class KnownRedisErrors

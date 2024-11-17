@@ -3,13 +3,8 @@ using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Internal.Commands;
 
-internal sealed class HashGetAllCommand<T> : Command<Dictionary<string, T>>
+internal sealed class HashGetAllCommand<T>(string key) : Command<Dictionary<string, T>>(CommandNames.HGetAll, key.ToValue())
 {
-    public HashGetAllCommand(string key)
-        : base(CommandNames.HGetAll, key.ToValue())
-    {
-    }
-
     public override Dictionary<string, T> GetResult(RedisObject resultObject)
     {
         var arrayItems = ((RedisArray)resultObject).Items;

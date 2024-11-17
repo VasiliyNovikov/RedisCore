@@ -1,6 +1,6 @@
 ﻿namespace RedisCore.Internal.Protocol;
 
-internal sealed class RedisCharString : RedisString
+internal sealed class RedisCharString(string value) : RedisString
 {
     private int _byteLength = -1;
     public override int ByteLength
@@ -13,9 +13,7 @@ internal sealed class RedisCharString : RedisString
         }
     }
 
-    public string Value { get; }
-
-    public RedisCharString(string value) => Value = value;
+    public string Value => value;
 
     public override string ToString() => Value;
 }

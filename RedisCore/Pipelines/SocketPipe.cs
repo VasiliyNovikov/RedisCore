@@ -4,22 +4,15 @@ using System.Threading.Tasks;
 
 namespace RedisCore.Pipelines;
 
-public class SocketPipe : DuplexPipe
+public class SocketPipe(Socket socket, int bufferSegmentSize = 512, int pauseWriterThreshold = 8192, int resumeWriterThreshold = 4096)
+    : DuplexPipe(bufferSegmentSize, pauseWriterThreshold, resumeWriterThreshold)
 {
-    private readonly Socket _socket;
-
-    public SocketPipe(Socket socket, int bufferSegmentSize = 512, int pauseWriterThreshold = 8192, int resumeWriterThreshold = 4096)
-        : base(bufferSegmentSize, pauseWriterThreshold, resumeWriterThreshold)
-    {
-        _socket = socket;
-    }
-
     protected override async Task PopulateReader(PipeWriter readerBackend)
     {
         while (true)
         {
             var memory = readerBackend.GetMemory(BufferSegmentSize);
-            var bytesRead = await _socket.ReceiveAsync(memory, SocketFlags.None);
+            var bytesRead = await socket.ReceiveAsync(memory, SocketFlags.None);
             if (bytesRead == 0)
                 break;
 
@@ -39,7 +32,7 @@ public class SocketPipe : DuplexPipe
             var buffer = result.Buffer;
             while (buffer.Length > 0)
             {
-                await _socket.SendAsync(buffer.First, SocketFlags.None);
+                await socket.SendAsync(buffer.First, SocketFlags.None);
                 buffer = buffer.Slice(buffer.First.Length);
             }
 

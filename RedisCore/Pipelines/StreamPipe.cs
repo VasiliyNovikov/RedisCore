@@ -4,22 +4,15 @@ using System.Threading.Tasks;
 
 namespace RedisCore.Pipelines;
 
-public class StreamPipe : DuplexPipe
+public class StreamPipe(Stream stream, int bufferSegmentSize = 512, int pauseWriterThreshold = 8192, int resumeWriterThreshold = 4096)
+    : DuplexPipe(bufferSegmentSize, pauseWriterThreshold, resumeWriterThreshold)
 {
-    private readonly Stream _stream;
-
-    public StreamPipe(Stream stream, int bufferSegmentSize = 512, int pauseWriterThreshold = 8192, int resumeWriterThreshold = 4096)
-        : base(bufferSegmentSize, pauseWriterThreshold, resumeWriterThreshold)
-    {
-        _stream = stream;
-    }
-
     protected override async Task PopulateReader(PipeWriter readerBackend)
     {
         while (true)
         {
             var memory = readerBackend.GetMemory(BufferSegmentSize);
-            var bytesRead = await _stream.ReadAsync(memory);
+            var bytesRead = await stream.ReadAsync(memory);
             if (bytesRead == 0)
                 break;
 
@@ -39,11 +32,11 @@ public class StreamPipe : DuplexPipe
             var buffer = result.Buffer;
             while (buffer.Length > 0)
             {
-                await _stream.WriteAsync(buffer.First);
+                await stream.WriteAsync(buffer.First);
                 buffer = buffer.Slice(buffer.First.Length);
             }
 
-            await _stream.FlushAsync();
+            await stream.FlushAsync();
             writerBackend.AdvanceTo(result.Buffer.End);
 
             if (result.IsCompleted)

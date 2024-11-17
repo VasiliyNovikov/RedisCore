@@ -2,11 +2,9 @@
 
 namespace RedisCore.Internal.Protocol;
 
-internal sealed class RedisInteger : RedisValueObject
+internal sealed class RedisInteger(long value) : RedisValueObject
 {
-    public long Value { get; }
+    public long Value => value;
 
-    public RedisInteger(long value) => Value = value;
-
-    public override string ToString() => Value.ToString(CultureInfo.InvariantCulture);
+    public override string ToString() => value.ToString(CultureInfo.InvariantCulture);
 }

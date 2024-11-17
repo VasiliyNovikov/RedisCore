@@ -6,24 +6,18 @@ using System.Linq;
 
 namespace RedisCore.Utils;
 
-public readonly struct RentedBuffer<T> : IEnumerable<T>, IDisposable
+public readonly struct RentedBuffer<T>(int length) : IEnumerable<T>, IDisposable
     where T : struct
 {
-    private readonly T[] _buffer;
+    private readonly T[] _buffer = ArrayPool<T>.Shared.Rent(length);
 
-    public int Length { get; }
+    public int Length => length;
 
-    public Memory<T> Memory => new(_buffer, 0, Length);
+    public Memory<T> Memory => new(_buffer, 0, length);
 
-    public Span<T> Span => new(_buffer, 0, Length);
+    public Span<T> Span => new(_buffer, 0, length);
 
-    public ArraySegment<T> Segment => new(_buffer, 0, Length);
-
-    public RentedBuffer(int length)
-    {
-        Length = length;
-        _buffer = ArrayPool<T>.Shared.Rent(length);
-    }
+    public ArraySegment<T> Segment => new(_buffer, 0, length);
 
     public static implicit operator Memory<T>(in RentedBuffer<T> buffer) => buffer.Memory;
 
@@ -33,7 +27,7 @@ public readonly struct RentedBuffer<T> : IEnumerable<T>, IDisposable
 
     public void Dispose() => ArrayPool<T>.Shared.Return(_buffer);
 
-    public IEnumerator<T> GetEnumerator() => _buffer.Take(Length).GetEnumerator();
+    public IEnumerator<T> GetEnumerator() => _buffer.Take(length).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

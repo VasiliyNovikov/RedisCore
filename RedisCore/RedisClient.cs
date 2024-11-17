@@ -226,21 +226,14 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
 
     #region Transaction
 
-    private sealed class Transaction : RedisCommandsBase, IRedisTransaction
+    private sealed class Transaction(RedisClient client) : RedisCommandsBase, IRedisTransaction
     {
-        private readonly RedisClient _client;
-        private readonly IBufferPool<byte> _bufferPool;
+        private readonly IBufferPool<byte> _bufferPool = client.CreateBufferPool();
         private bool _disposed;
         private readonly List<string> _watchedKeys = [];
         private readonly List<QueuedCommand> _queuedCommands = [];
 
-        private protected override ScriptCache? Scripts => _client.Scripts;
-
-        public Transaction(RedisClient client)
-        {
-            _client = client;
-            _bufferPool = client.CreateBufferPool();
-        }
+        private protected override ScriptCache? Scripts => client.Scripts;
 
         private void CheckDisposed()
         {
@@ -258,18 +251,18 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
         {
             CheckDisposed();
             _disposed = true;
-            var connection = await _client.AcquireConnection();
+            var connection = await client.AcquireConnection();
             try
             {
                 foreach (var key in _watchedKeys)
-                    await _client.Execute(connection, new WatchCommand(key));
+                    await client.Execute(connection, new WatchCommand(key));
 
-                await _client.Execute(connection, new MultiCommand());
+                await client.Execute(connection, new MultiCommand());
                 try
                 {
                     foreach (var command in _queuedCommands)
-                        await _client.Execute(connection, command.Data, _bufferPool);
-                    var result = await _client.Execute(connection, new ExecCommand());
+                        await client.Execute(connection, command.Data, _bufferPool);
+                    var result = await client.Execute(connection, new ExecCommand());
                     if (result == null)
                     {
                         foreach (var command in _queuedCommands)
@@ -283,7 +276,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
                 }
                 catch
                 {
-                    await _client.Execute(connection, new DiscardCommand());
+                    await client.Execute(connection, new DiscardCommand());
                     throw;
                 }
             }
@@ -295,7 +288,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
             }
             finally
             {
-                _client.ReleaseConnection(connection);
+                client.ReleaseConnection(connection);
             }
         }
 
