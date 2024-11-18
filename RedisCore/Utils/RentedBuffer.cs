@@ -7,7 +7,6 @@ using System.Linq;
 namespace RedisCore.Utils;
 
 public readonly struct RentedBuffer<T>(int length) : IEnumerable<T>, IDisposable
-    where T : struct
 {
     private readonly T[] _buffer = ArrayPool<T>.Shared.Rent(length);
 

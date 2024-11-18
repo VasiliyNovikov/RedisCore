@@ -74,7 +74,7 @@ internal static class ProtocolHandler
 
             case RedisArray arrayObject:
                 Write(writer, ArrayLenPrefix);
-                WriteScalar(writer, arrayObject.Items.Count);
+                WriteScalar(writer, arrayObject.Items.Length);
                 Write(writer, NewLine);
 
                 foreach (var item in arrayObject.Items)
@@ -201,10 +201,14 @@ internal static class ProtocolHandler
 
                         if (length < 0)
                             return RedisNull.Value;
-                        var items = new List<RedisObject>(length);
+
+                        using var items = new RentedBuffer<RedisObject>(length);
                         for (var i = 0; i < length; ++i)
-                            items.Add(await Read(reader, bufferPool, cancellationToken));
-                        return new RedisArray(items);
+                        {
+                            var item = await Read(reader, bufferPool, cancellationToken);
+                            items.Span[i] = item;
+                        }
+                        return new RedisArray(items.Span);
                     }
                 case '-':
                     var errorMessagePos = line.PositionOf((byte)' ');

@@ -1,14 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 
 namespace RedisCore.Internal.Protocol;
 
-internal sealed class RedisArray(IEnumerable<RedisObject> items) : RedisObject
+internal sealed class RedisArray : RedisObject
 {
-    public IReadOnlyList<RedisObject> Items { get; } = items.ToList().AsReadOnly();
+    public RedisObject[] Items { get; }
 
-    public RedisArray(params RedisObject[] items)
-        : this((IEnumerable<RedisObject>)items)
-    {
-    }
+    public RedisArray(params ReadOnlySpan<RedisObject> items) => Items = items.ToArray();
 }

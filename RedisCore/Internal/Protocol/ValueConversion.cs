@@ -280,8 +280,8 @@ internal static class ValueConversion
         private static TItem[] CreateArray<TItem>(RedisArray value)
         {
             var items = value.Items;
-            var result = new TItem[items.Count];
-            for (var i = 0; i < items.Count; ++i)
+            var result = new TItem[items.Length];
+            for (var i = 0; i < items.Length; ++i)
                 result[i] = items[i].To<TItem>();
             return result;
         }
@@ -289,7 +289,7 @@ internal static class ValueConversion
         private static List<TItem> CreateList<TItem>(RedisArray value)
         {
             var items = value.Items;
-            var result = new List<TItem>(items.Count);
+            var result = new List<TItem>(items.Length);
             foreach (var item in items)
                 result.Add(item.To<TItem>());
             return result;
@@ -301,7 +301,7 @@ internal static class ValueConversion
 #if NETSTANDARD2_0
             var result = new HashSet<TItem>();
 #else
-            var result = new HashSet<TItem>(items.Count);
+            var result = new HashSet<TItem>(items.Length);
 #endif
             foreach (var item in items)
                 result.Add(item.To<TItem>());

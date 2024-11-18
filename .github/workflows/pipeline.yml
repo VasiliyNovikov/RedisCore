@@ -85,7 +85,7 @@ jobs:
             9.0.x
 
       - name: Build
-        run: dotnet build -c ${{ vars.CONFIGURATION }}
+        run: dotnet build ./RedisCore/RedisCore.csproj -c ${{ vars.CONFIGURATION }}
 
       - name: Pack
         run: dotnet pack ./RedisCore/RedisCore.csproj -c ${{ vars.CONFIGURATION }} --no-build --version-suffix "${{ fromJSON(format('["-beta-{0}", ""]', github.run_number))[github.ref_name == 'master'] }}"
