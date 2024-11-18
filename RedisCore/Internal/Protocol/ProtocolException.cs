@@ -2,10 +2,4 @@
 
 namespace RedisCore.Internal.Protocol;
 
-public class ProtocolException : Exception
-{
-    public ProtocolException(string message)
-        : base(message)
-    {
-    }
-}
+public class ProtocolException(string message) : Exception(message);

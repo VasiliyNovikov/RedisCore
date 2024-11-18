@@ -2,10 +2,4 @@
 
 namespace RedisCore.Internal.Commands;
 
-internal sealed class HashValuesCommand<T> : Command<T[]>
-{
-    public HashValuesCommand(string key)
-        : base(CommandNames.HVals, key.ToValue())
-    {
-    }
-}
+internal sealed class HashValuesCommand<T>(string key) : Command<T[]>(CommandNames.HVals, key.ToValue());

@@ -4,7 +4,7 @@ using RedisCore.Internal.Protocol;
 
 namespace RedisCore.Internal.Commands;
 
-internal sealed class SelectCommand : VoidCommand
+internal sealed class SelectCommand(int database) : VoidCommand(CommandNames.Select, GetDatabaseValue(database))
 {
     private static readonly ConcurrentDictionary<int, RedisByteString> DatabaseIndices = new();
 
@@ -13,10 +13,5 @@ internal sealed class SelectCommand : VoidCommand
         if (!DatabaseIndices.TryGetValue(database, out var value))
             DatabaseIndices[database] = value = new RedisByteString(database.ToString(CultureInfo.InvariantCulture));
         return value;
-    }
-
-    public SelectCommand(int database)
-        : base(CommandNames.Select, GetDatabaseValue(database))
-    {
     }
 }

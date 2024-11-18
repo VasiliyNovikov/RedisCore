@@ -2,10 +2,4 @@
 
 namespace RedisCore.Internal.Commands;
 
-internal sealed class HashDeleteCommand : Command<bool>
-{
-    public HashDeleteCommand(string key, string field)
-        : base(CommandNames.HDel, key.ToValue(), field.ToValue())
-    {
-    }
-}
+internal sealed class HashDeleteCommand(string key, string field) : Command<bool>(CommandNames.HDel, key.ToValue(), field.ToValue());

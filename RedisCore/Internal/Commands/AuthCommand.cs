@@ -2,10 +2,4 @@
 
 namespace RedisCore.Internal.Commands;
 
-internal sealed class AuthCommand : VoidCommand
-{
-    public AuthCommand(string password)
-        : base(CommandNames.Auth, new RedisCharString(password))
-    {
-    }
-}
+internal sealed class AuthCommand(string password) : VoidCommand(CommandNames.Auth, new RedisCharString(password));

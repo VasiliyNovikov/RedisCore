@@ -2,10 +2,4 @@
 
 namespace RedisCore.Internal.Commands;
 
-internal abstract class OptionalValueCommand<T> : Command<Optional<T>>
-{
-    protected OptionalValueCommand(RedisString name, params RedisObject[] args)
-        : base(name, args)
-    {
-    }
-}
+internal abstract class OptionalValueCommand<T>(RedisString name, params RedisObject[] args) : Command<Optional<T>>(name, args);

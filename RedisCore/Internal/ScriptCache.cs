@@ -4,12 +4,9 @@ using RedisCore.Internal.Commands;
 
 namespace RedisCore.Internal;
 
-internal sealed class ScriptCache
+internal sealed class ScriptCache(RedisClient client)
 {
-    private readonly RedisClient _client;
     private readonly ConcurrentDictionary<string, string> _scripts = new();
-
-    public ScriptCache(RedisClient client) => _client = client;
 
     /// <summary>
     /// Returns Script's SHA1 hash which can be used to execute it via EVALSHA. Also adds it to local in-memory cache 
@@ -33,5 +30,5 @@ internal sealed class ScriptCache
     /// <summary>
     /// Returns Script's SHA1 hash which can be used to execute it via EVALSHA. Doesn't involve local in-memory cache
     /// </summary>
-    private async ValueTask<string> GetNoCache(string script) => await _client.Execute(new ScriptLoadCommand(script));
+    private async ValueTask<string> GetNoCache(string script) => await client.Execute(new ScriptLoadCommand(script));
 }

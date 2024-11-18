@@ -2,10 +2,4 @@
 
 namespace RedisCore.Internal.Commands;
 
-internal sealed class HashExistsCommand : Command<bool>
-{
-    public HashExistsCommand(string key, string field)
-        : base(CommandNames.HExists, key.ToValue(), field.ToValue())
-    {
-    }
-}
+internal sealed class HashExistsCommand(string key, string field) : Command<bool>(CommandNames.HExists, key.ToValue(), field.ToValue());

@@ -1,9 +1,3 @@
 ﻿namespace RedisCore.Internal.Commands;
 
-internal sealed class GetCommand<T> : GetValueByKeyCommand<T>
-{
-    public GetCommand(string key)
-        : base(CommandNames.Get, key)
-    {
-    }
-}
+internal sealed class GetCommand<T>(string key) : GetValueByKeyCommand<T>(CommandNames.Get, key);

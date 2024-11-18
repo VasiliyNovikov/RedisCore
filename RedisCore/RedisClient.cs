@@ -226,21 +226,14 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
 
     #region Transaction
 
-    private sealed class Transaction : RedisCommandsBase, IRedisTransaction
+    private sealed class Transaction(RedisClient client) : RedisCommandsBase, IRedisTransaction
     {
-        private readonly RedisClient _client;
-        private readonly IBufferPool<byte> _bufferPool;
+        private readonly IBufferPool<byte> _bufferPool = client.CreateBufferPool();
         private bool _disposed;
         private readonly List<string> _watchedKeys = [];
         private readonly List<QueuedCommand> _queuedCommands = [];
 
-        private protected override ScriptCache? Scripts => _client.Scripts;
-
-        public Transaction(RedisClient client)
-        {
-            _client = client;
-            _bufferPool = client.CreateBufferPool();
-        }
+        private protected override ScriptCache? Scripts => client.Scripts;
 
         private void CheckDisposed()
         {
@@ -258,18 +251,18 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
         {
             CheckDisposed();
             _disposed = true;
-            var connection = await _client.AcquireConnection();
+            var connection = await client.AcquireConnection();
             try
             {
                 foreach (var key in _watchedKeys)
-                    await _client.Execute(connection, new WatchCommand(key));
+                    await client.Execute(connection, new WatchCommand(key));
 
-                await _client.Execute(connection, new MultiCommand());
+                await client.Execute(connection, new MultiCommand());
                 try
                 {
                     foreach (var command in _queuedCommands)
-                        await _client.Execute(connection, command.Data, _bufferPool);
-                    var result = await _client.Execute(connection, new ExecCommand());
+                        await client.Execute(connection, command.Data, _bufferPool);
+                    var result = await client.Execute(connection, new ExecCommand());
                     if (result == null)
                     {
                         foreach (var command in _queuedCommands)
@@ -283,7 +276,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
                 }
                 catch
                 {
-                    await _client.Execute(connection, new DiscardCommand());
+                    await client.Execute(connection, new DiscardCommand());
                     throw;
                 }
             }
@@ -295,7 +288,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
             }
             finally
             {
-                _client.ReleaseConnection(connection);
+                client.ReleaseConnection(connection);
             }
         }
 
@@ -368,35 +361,19 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
             }
         }
 
-        private sealed class QueuedValueCommand<T> : QueuedCommand<T>
+        private sealed class QueuedValueCommand<T>(Command<T> command) : QueuedCommand<T>
         {
-            private readonly Command<T> _command;
+            public override RedisArray Data => command.Data;
 
-            public override RedisArray Data => _command.Data;
-
-            public QueuedValueCommand(Command<T> command)
-            {
-                _command = command;
-            }
-
-            protected override T ExtractResult(RedisObject protocolResult) => _command.GetResult(protocolResult);
+            protected override T ExtractResult(RedisObject protocolResult) => command.GetResult(protocolResult);
         }
 
-        private sealed class QueuedBufferCommand<TCommand> : QueuedCommand<Memory<byte>?>
+        private sealed class QueuedBufferCommand<TCommand>(TCommand command, IBufferPool<byte> bufferPool) : QueuedCommand<Memory<byte>?>
             where TCommand : Command<Optional<byte[]>>
         {
-            private readonly TCommand _command;
-            private readonly IBufferPool<byte> _bufferPool;
+            public override RedisArray Data => command.Data;
 
-            public override RedisArray Data => _command.Data;
-
-            public QueuedBufferCommand(TCommand command, IBufferPool<byte> bufferPool)
-            {
-                _command = command;
-                _bufferPool = bufferPool;
-            }
-
-            protected override Memory<byte>? ExtractResult(RedisObject protocolResult) => protocolResult.To(_bufferPool);
+            protected override Memory<byte>? ExtractResult(RedisObject protocolResult) => protocolResult.To(bufferPool);
         }
     }
 
@@ -421,20 +398,10 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
 
     #region Subscription
 
-    private sealed class Subscription : ISubscription
+    private sealed class Subscription(RedisClient client, Connection connection, string channel) : ISubscription
     {
-        private readonly RedisClient _client;
-        private readonly Connection _connection;
-        private readonly string _channel;
         private bool _unsubscribed;
         private bool _disposed;
-
-        public Subscription(RedisClient client, Connection connection, string channel)
-        {
-            _client = client;
-            _connection = connection;
-            _channel = channel;
-        }
 
         public void Dispose()
         {
@@ -443,9 +410,9 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
 
             _disposed = true;
             if (_unsubscribed)
-                _client.ReleaseConnection(_connection);
+                client.ReleaseConnection(connection);
             else
-                _connection.Dispose();
+                connection.Dispose();
         }
 
         public async ValueTask DisposeAsync()
@@ -460,13 +427,13 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
                 }
                 catch (RedisConnectionException)
                 {
-                    await _connection.DisposeAsync();
+                    await connection.DisposeAsync();
                     _disposed = true;
                     return;
                 }
 
             _disposed = true;
-            _client.ReleaseConnection(_connection);
+            client.ReleaseConnection(connection);
         }
 
         private void CheckDisposed()
@@ -479,12 +446,12 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
         {
             try
             {
-                ProtocolHandler.Write(_connection.Output, cmd.Data);
-                await _connection.Output.FlushAsync();
+                ProtocolHandler.Write(connection.Output, cmd.Data);
+                await connection.Output.FlushAsync();
             }
             catch (Exception e)
             {
-                if (WrapException(_connection, e, out var redisException))
+                if (WrapException(connection, e, out var redisException))
                     throw redisException;
                 throw;
             }
@@ -492,7 +459,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
 
         internal async ValueTask Subscribe()
         {
-            await SendCommand(new SubscribeCommand(_channel));
+            await SendCommand(new SubscribeCommand(channel));
             await GetMessage<int>("subscribe");
         }
 
@@ -508,7 +475,7 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
             where TExtractResult : struct, IExtractResult<T>
         {
             CheckDisposed();
-            using var bufferPool = _client.CreateBufferPool();
+            using var bufferPool = client.CreateBufferPool();
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -516,11 +483,11 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
                 RedisObject result;
                 try
                 {
-                    result = await ProtocolHandler.Read(_connection.Input, bufferPool, cancellationToken);
+                    result = await ProtocolHandler.Read(connection.Input, bufferPool, cancellationToken);
                 }
                 catch (Exception e)
                 {
-                    if (WrapException(_connection, e, out var redisException))
+                    if (WrapException(connection, e, out var redisException))
                         throw redisException;
                     throw;
                 }
@@ -556,13 +523,11 @@ public class RedisClient : RedisCommandsBase, IDisposable, IAsyncDisposable
             public readonly T GetResult(RedisValueObject value) => value.To<T>();
         }
 
-        private readonly struct ExtractBufferResult : IExtractResult<Memory<byte>>
+        private readonly struct ExtractBufferResult(IBufferPool<byte> bufferPool) : IExtractResult<Memory<byte>>
         {
-            private readonly IBufferPool<byte> _bufferPool;
-            public ExtractBufferResult(IBufferPool<byte> bufferPool) => _bufferPool = bufferPool;
-            // ReSharper disable PossibleInvalidOperationException
+            private readonly IBufferPool<byte> _bufferPool = bufferPool;
+
             public Memory<byte> GetResult(RedisValueObject value) => value.To(_bufferPool)!.Value;
-            // ReSharper restore PossibleInvalidOperationException
         }
     }
 

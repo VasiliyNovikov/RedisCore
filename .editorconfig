@@ -12,7 +12,6 @@ dotnet_diagnostic.IDE0022.severity = none  # https://learn.microsoft.com/en-us/d
 dotnet_diagnostic.IDE0023.severity = none  # https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0023
 dotnet_diagnostic.IDE0024.severity = none  # https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0024
 dotnet_diagnostic.IDE0061.severity = none  # https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0061
-dotnet_diagnostic.IDE0290.severity = none  # https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0290  # TODO: Address it later
 csharp_style_namespace_declarations = file_scoped
 
 [*{Tests,TestsBase,Benchmarks}.cs]

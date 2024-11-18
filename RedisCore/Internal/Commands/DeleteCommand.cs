@@ -2,10 +2,4 @@
 
 namespace RedisCore.Internal.Commands;
 
-internal sealed class DeleteCommand : Command<bool>
-{
-    public DeleteCommand(string key)
-        : base(CommandNames.Del, key.ToValue())
-    {
-    }
-}
+internal sealed class DeleteCommand(string key) : Command<bool>(CommandNames.Del, key.ToValue());
